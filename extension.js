@@ -25,6 +25,7 @@ const PopupMenu = imports.ui.popupMenu;
 const Me = imports.misc.extensionUtils.getCurrentExtension();
 const Gio = imports.gi.Gio;
 const Util = imports.misc.util;
+const GLib = imports.gi.GLib;
 
 let TW_ICON = Gio.icon_new_for_string(Me.path + "/icons/Taskwarrior_icon.png");
 let TW_SITE = 'https://taskwarrior.org/download/'
@@ -55,17 +56,47 @@ const TaskList = new Lang.Class({
         nbox.add_child(this.icon);
         this.actor.add_child(nbox);
         this.actor.show();
-
-
-        this.version();
+        this._versionCheck();
     },
 
-    version: function () {
-        var re = /^(?:(\d+)\.)?(?:(\d+)\.)?(\*|\d+)$/;
+    _command: function (cmd) {
 
         try {
-            Util.trySpawnCommandLine(TW_BIN + " --version");
+            //[ok: Boolean, standard_output: ByteArray, standard_error: ByteArray, exit_status: Number(gint)]
+            let [res, out, err, status] = GLib.spawn_command_line_sync(cmd);
+            return out;
+            //Util.trySpawnCommandLine();
         } catch (err) {
+            this.item = new PopupMenu.PopupMenuItem("No Taskwarrior detected ! Click to Install");
+            this.menu.addMenuItem(this.item);
+            this.itemId = this.item.connect('activate', function () {
+                Util.spawnCommandLine(OPEN_BROWSER + " " + TW_SITE);
+            });
+            return err;
+        }
+
+    },
+
+    /*
+     * Function checking that taskwarrior client is installed on system and at least version 2.0.0.
+     */
+    _versionCheck: function () {
+
+        try {
+            //[ok: Boolean, standard_output: ByteArray, standard_error: ByteArray, exit_status: Number(gint)]
+            let [res, out, err, status] = GLib.spawn_command_line_sync(TW_BIN + " --version");
+            let version = new String(out);
+            let major = version.split('.')[0];
+            if ( typeof major != 'string' || parseInt(major) < 2) {
+                log(version);
+                this.item = new PopupMenu.PopupMenuItem("Taskwarrior version outdated ! Click to Update");
+                this.menu.addMenuItem(this.item);
+                this.itemId = this.item.connect('activate', function () {
+                    Util.spawnCommandLine(OPEN_BROWSER + " " + TW_SITE);
+                });
+            }
+        } catch (err) {
+            log(err);
             this.item = new PopupMenu.PopupMenuItem("No Taskwarrior detected ! Click to Install");
             this.menu.addMenuItem(this.item);
             this.itemId = this.item.connect('activate', function () {
@@ -73,8 +104,6 @@ const TaskList = new Lang.Class({
             });
         }
 
-        //var newstr = ver.replace(re,"$1, $2, $3");
-        //log('yahooo', e);
     },
 
     destroy: function () {
