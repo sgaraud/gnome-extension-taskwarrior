@@ -4,10 +4,10 @@ This GNOME shell extension is enabling access to [Taskwarrior](https://taskwarri
 
 ### Dependencies
 
-Taskwarrior :godmode: :exclamation: 
+Taskwarrior V2.0.0 or higher :godmode: :exclamation: 
 make sure [Taskwarrior](https://taskwarrior.org/download/) is installed on your system.
 
-### Supported Taskwarrior Features
+### Soon to be Supported Taskwarrior Features
 
     Display task list
     Add tasks

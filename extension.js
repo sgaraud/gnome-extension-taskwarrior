@@ -28,9 +28,12 @@ const Util = imports.misc.util;
 const GLib = imports.gi.GLib;
 
 let TW_ICON = Gio.icon_new_for_string(Me.path + "/icons/Taskwarrior_icon.png");
-let TW_SITE = 'https://taskwarrior.org/download/'
-let TW_BIN = 'task'
-let OPEN_BROWSER = 'xdg-open'
+let TW_SITE = 'https://taskwarrior.org/download/';
+let TW_BIN = 'task';
+let OPEN_BROWSER = 'xdg-open';
+
+let EXPORT = ' export';
+let VERSION = ' --version';
 
 function init() {
 
@@ -43,67 +46,120 @@ const Task = new Lang.Class({
     },
 });
 
-const TaskList = new Lang.Class({
-    Name: 'TaskList.TaskList',
+const TaskW = new Lang.Class({
+    Name: 'TaskW.TaskW',
     Extends: PanelMenu.Button,
 
     _init: function () {
 
-        this.parent(0.0, _("Task List"));
+        this.parent(0.0, _("Taskwarrior Extension"));
         let nbox = new St.BoxLayout({style_class: 'panel-status-menu-box'});
         this.icon = new St.Icon({gicon: TW_ICON, style_class: 'system-status-icon'});
-
         nbox.add_child(this.icon);
         this.actor.add_child(nbox);
         this.actor.show();
-        this._versionCheck();
+
+        if (this._versionCheck()) {
+            this.actorId = this.actor.connect('button-press-event', Lang.bind(this, this._update));
+        }
     },
 
-    _command: function (cmd) {
+    _update: function (cmd) {
+        log("hell yeah");
+
+        //update the task list
+        this._export();
+        //display the tasks
+        this.taskItem = new PopupMenu.PopupMenuItem("to do");
+        this.menu.addMenuItem(this.taskItem);
+    },
+
+    /*
+     * Function to query data from Taskwarrior
+     */
+    _export: function () {
+
+        /*
+        "status":"pending"
+        "status":"deleted"
+        "status":"completed"
+        "status":"waiting"
+        "status":"recurring"
+        */
 
         try {
             //[ok: Boolean, standard_output: ByteArray, standard_error: ByteArray, exit_status: Number(gint)]
-            let [res, out, err, status] = GLib.spawn_command_line_sync(cmd);
-            return out;
-            //Util.trySpawnCommandLine();
+            let [res, out, err, status] = GLib.spawn_command_line_sync(TW_BIN + EXPORT + ' status:pending');
+            //var lines = (new String(out)).split('\n');
+            var lines = (new String(out)).match(/[^\r\n]+/g);
+            for(var i = 0;i < lines.length;i++){
+
+                let json = JSON.parse(lines[i]);
+                log(json.description);
+            }
         } catch (err) {
-            this.item = new PopupMenu.PopupMenuItem("No Taskwarrior detected ! Click to Install");
-            this.menu.addMenuItem(this.item);
-            this.itemId = this.item.connect('activate', function () {
-                Util.spawnCommandLine(OPEN_BROWSER + " " + TW_SITE);
-            });
-            return err;
+            log(err);
         }
 
     },
 
     /*
+     * Function to compose a valid command line as a simple way to put data into Taskwarrior.
+     */
+    _import: function (cmd) {
+
+    },
+
+    _getTaskList: function (cmd) {
+
+    },
+
+    _addTask: function (cmd) {
+
+    },
+
+    _taskDone: function (cmd) {
+
+    },
+
+    /*
+     * TODO for the future
+     */
+    _modifyTask: function (cmd) {
+
+    },
+
+    /*
      * Function checking that taskwarrior client is installed on system and at least version 2.0.0.
+     * return: true if taskwarrior client is ok. false otherwise.
      */
     _versionCheck: function () {
 
         try {
-            //[ok: Boolean, standard_output: ByteArray, standard_error: ByteArray, exit_status: Number(gint)]
-            let [res, out, err, status] = GLib.spawn_command_line_sync(TW_BIN + " --version");
+            let [res, out, err, status] = GLib.spawn_command_line_sync(TW_BIN + VERSION);
             let version = new String(out);
             let major = version.split('.')[0];
-            if ( typeof major != 'string' || parseInt(major) < 2) {
+            if ( typeof major != 'string' || isNaN(major) || parseInt(major) < 2) {
                 log(version);
-                this.item = new PopupMenu.PopupMenuItem("Taskwarrior version outdated ! Click to Update");
-                this.menu.addMenuItem(this.item);
-                this.itemId = this.item.connect('activate', function () {
-                    Util.spawnCommandLine(OPEN_BROWSER + " " + TW_SITE);
-                });
+                this._goToWebsite("Taskwarrior version outdated ! Click to Update");
             }
+            return true;
         } catch (err) {
             log(err);
-            this.item = new PopupMenu.PopupMenuItem("No Taskwarrior detected ! Click to Install");
-            this.menu.addMenuItem(this.item);
-            this.itemId = this.item.connect('activate', function () {
-                Util.spawnCommandLine(OPEN_BROWSER + " " + TW_SITE);
-            });
+            this._goToWebsite("No Taskwarrior detected ! Click to Install");
+            return false;
         }
+    },
 
+    /*
+     * Function redirecting to Taskwarrior website download section
+     */
+    _goToWebsite: function (msg) {
+        this.item = new PopupMenu.PopupMenuItem(msg);
+        this.menu.addMenuItem(this.item);
+        this.itemId = this.item.connect('activate', function () {
+            Util.spawnCommandLine(OPEN_BROWSER + " " + TW_SITE);
+        });
     },
 
     destroy: function () {
@@ -114,8 +170,8 @@ const TaskList = new Lang.Class({
 let _indicator;
 
 function enable() {
-    _indicator = new TaskList;
-    Main.panel.addToStatusArea('Taskwarrior-list', _indicator);
+    _indicator = new TaskW;
+    Main.panel.addToStatusArea('Taskwarrior-extension', _indicator);
 }
 
 function disable() {
