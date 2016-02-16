@@ -9,8 +9,8 @@ make sure [Taskwarrior](https://taskwarrior.org/download/) is installed on your 
 
 ### Soon to be Supported Taskwarrior Features
 
-    Display task list
-    Add tasks
+    Display pending tasks list
+    Add new tasks
     Mark tasks as done
     Delete tasks
     Modify tasks

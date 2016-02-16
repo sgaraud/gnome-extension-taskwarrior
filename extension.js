@@ -19,6 +19,7 @@
 const Clutter = imports.gi.Clutter;
 const Lang = imports.lang;
 const St = imports.gi.St;
+const ShellEntry = imports.ui.shellEntry;
 const Main = imports.ui.main;
 const PanelMenu = imports.ui.panelMenu;
 const PopupMenu = imports.ui.popupMenu;
@@ -34,6 +35,11 @@ let OPEN_BROWSER = 'xdg-open';
 
 let EXPORT = ' export';
 let VERSION = ' --version';
+let PENDING = ' status:pending';
+let DELETED = ' status:deleted';
+let COMPLETED = ' status:completed';
+let WAITING = ' status:waiting';
+let RECURRING = ' status:recurring';
 
 function init() {
 
@@ -41,8 +47,12 @@ function init() {
 
 const Task = new Lang.Class({
     Name: 'Task.Task',
-    _init: function (obj) {
-        this.task = obj;
+    _init: function (task) {
+        this.uuid = task.uuid;
+        this.id = task.id;
+        this.entry = task.entry;
+        this.description = task.description;
+        this.urgency = task.urgency;
     },
 });
 
@@ -61,41 +71,31 @@ const TaskW = new Lang.Class({
 
         if (this._versionCheck()) {
             this.actorId = this.actor.connect('button-press-event', Lang.bind(this, this._update));
+            this._update();
         }
     },
 
     _update: function (cmd) {
-        log("hell yeah");
-
-        //update the task list
-        this._export();
-        //display the tasks
-        this.taskItem = new PopupMenu.PopupMenuItem("to do");
-        this.menu.addMenuItem(this.taskItem);
+        this.menu.removeAll();
+        this._export(PENDING);
+        this._buildMainUI();
     },
 
     /*
-     * Function to query data from Taskwarrior
+     * Function to query data from Taskwarrior and create local task array
      */
-    _export: function () {
+    _export: function (st) {
 
-        /*
-        "status":"pending"
-        "status":"deleted"
-        "status":"completed"
-        "status":"waiting"
-        "status":"recurring"
-        */
+        this.taskList = [];
 
         try {
             //[ok: Boolean, standard_output: ByteArray, standard_error: ByteArray, exit_status: Number(gint)]
-            let [res, out, err, status] = GLib.spawn_command_line_sync(TW_BIN + EXPORT + ' status:pending');
-            //var lines = (new String(out)).split('\n');
+            let [res, out, err, status] = GLib.spawn_command_line_sync(TW_BIN + EXPORT + st);
             var lines = (new String(out)).match(/[^\r\n]+/g);
             for(var i = 0;i < lines.length;i++){
-
                 let json = JSON.parse(lines[i]);
-                log(json.description);
+                let task = new Task(json);
+                this.taskList[i] = task;
             }
         } catch (err) {
             log(err);
@@ -110,20 +110,22 @@ const TaskW = new Lang.Class({
 
     },
 
-    _getTaskList: function (cmd) {
-
-    },
-
+    /*
+     * TODO
+     */
     _addTask: function (cmd) {
 
     },
 
+    /*
+     * TODO
+     */
     _taskDone: function (cmd) {
 
     },
 
     /*
-     * TODO for the future
+     * TODO
      */
     _modifyTask: function (cmd) {
 
@@ -162,6 +164,36 @@ const TaskW = new Lang.Class({
         });
     },
 
+    /*
+     * Function displaying main UI with all task entries.
+     * TODO
+     */
+    _buildMainUI: function () {
+
+
+        this._entry = new St.Entry({ can_focus: true });
+        ShellEntry.addContextMenu(this._entry);
+
+        this.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
+
+        for (let task of this.taskList) {
+            this.menu.addMenuItem(new PopupMenu.PopupMenuItem(task.description.toString()));
+        }
+
+
+    },
+
+    /*
+     * Function used as template for a single task UI, managing actions buttons
+     * TODO
+     */
+    _buildTaskUI: function () {
+
+    },
+
+    /*
+     * TODO
+     */
     destroy: function () {
         this.parent();
     },
