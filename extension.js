@@ -91,7 +91,7 @@ const TaskW = new Lang.Class({
         try {
             //[ok: Boolean, standard_output: ByteArray, standard_error: ByteArray, exit_status: Number(gint)]
             let [res, out, err, status] = GLib.spawn_command_line_sync(TW_BIN + EXPORT + st);
-            var lines = (new String(out)).match(/[^\r\n]+/g);
+            var lines = (new String(out)).split('\n');
             for(var i = 0;i < lines.length;i++){
                 let json = JSON.parse(lines[i]);
                 let task = new Task(json);
@@ -173,6 +173,7 @@ const TaskW = new Lang.Class({
 
         this._entry = new St.Entry({ can_focus: true });
         ShellEntry.addContextMenu(this._entry);
+
 
         this.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
 
