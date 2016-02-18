@@ -91,11 +91,15 @@ const TaskW = new Lang.Class({
         try {
             //[ok: Boolean, standard_output: ByteArray, standard_error: ByteArray, exit_status: Number(gint)]
             let [res, out, err, status] = GLib.spawn_command_line_sync(TW_BIN + EXPORT + st);
-            var lines = (new String(out)).split('\n');
+            lines = (new String(out)).split('\n');
+
             for(var i = 0;i < lines.length;i++){
-                let json = JSON.parse(lines[i]);
-                let task = new Task(json);
-                this.taskList[i] = task;
+                lines[i] = lines[i].replace(/,\s*$/, '');
+                if (lines[i].trim()) {
+                    let json = JSON.parse(lines[i]);
+                    let task = new Task(json);
+                    this.taskList[i] = task;
+                }
             }
         } catch (err) {
             log(err);
