@@ -19,14 +19,22 @@
 const Clutter = imports.gi.Clutter;
 const Lang = imports.lang;
 const St = imports.gi.St;
+const Meta       = imports.gi.Meta;
+const Shell      = imports.gi.Shell;
 const ShellEntry = imports.ui.shellEntry;
 const Main = imports.ui.main;
 const PanelMenu = imports.ui.panelMenu;
 const PopupMenu = imports.ui.popupMenu;
-const Me = imports.misc.extensionUtils.getCurrentExtension();
 const Gio = imports.gi.Gio;
 const Util = imports.misc.util;
 const GLib = imports.gi.GLib;
+
+const ExtensionUtils = imports.misc.extensionUtils;
+const Me = ExtensionUtils.getCurrentExtension();
+const Convenience = Me.imports.convenience;
+
+const TaskMenuItem = Me.imports.taskMenuItem;
+const TOGGLE_MENU = "toggle-menu";
 
 let TW_ICON = Gio.icon_new_for_string(Me.path + "/icons/Taskwarrior_icon.png");
 let TW_SITE = 'https://taskwarrior.org/download/';
@@ -41,8 +49,11 @@ let COMPLETED = ' status:completed';
 let WAITING = ' status:waiting';
 let RECURRING = ' status:recurring';
 
-function init() {
+let keybindingChangedId = null;
+let Schema = null;
 
+function init() {
+    Schema = Convenience.getSettings();
 }
 
 const Task = new Lang.Class({
@@ -69,6 +80,9 @@ const TaskW = new Lang.Class({
         this.actor.add_child(nbox);
         this.actor.show();
 
+        this._bindShortcuts();
+        keybindingChangedId = Schema.connect('changed', Lang.bind(this, this._bindShortcuts));
+
         if (this._versionCheck()) {
             this.actorId = this.actor.connect('button-press-event', Lang.bind(this, this._update));
             this._update();
@@ -91,9 +105,9 @@ const TaskW = new Lang.Class({
         try {
             //[ok: Boolean, standard_output: ByteArray, standard_error: ByteArray, exit_status: Number(gint)]
             let [res, out, err, status] = GLib.spawn_command_line_sync(TW_BIN + EXPORT + st);
-            lines = (new String(out)).split('\n');
+            let lines = (new String(out)).split('\n');
 
-            for(var i = 0;i < lines.length;i++){
+            for(let i = 0;i < lines.length;i++){
                 lines[i] = lines[i].replace(/,\s*$/, '');
                 if (lines[i].trim()) {
                     let json = JSON.parse(lines[i]);
@@ -174,12 +188,11 @@ const TaskW = new Lang.Class({
      */
     _buildMainUI: function () {
 
-
-        this._entry = new St.Entry({ can_focus: true });
+        this._entry = new St.Entry({ can_focus: true, hint_text: _('Add new task...'), track_hover: true});
         ShellEntry.addContextMenu(this._entry);
 
-
-        this.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
+        //https://searchcode.com/codesearch/view/22648000/
+        //this.menu.addMenuItem("fuck");
 
         for (let task of this.taskList) {
             this.menu.addMenuItem(new PopupMenu.PopupMenuItem(task.description.toString()));
@@ -196,12 +209,46 @@ const TaskW = new Lang.Class({
 
     },
 
+    _toggleMenu: function() {
+        log("zetoggle");
+        if(this.menu.visible) {
+            this.menu.close();
+        }
+        else {
+            this.menu.open();
+        }
+    },
+
+    _bindShortcuts: function() {
+        this.remove_keybindings();
+        this.add_keybindings();
+    },
+
+    add_keybindings: function() {
+        Main.wm.addKeybinding(
+            TOGGLE_MENU,
+            Schema,
+            Meta.KeyBindingFlags.NONE,
+            Shell.ActionMode.NORMAL |
+            Shell.ActionMode.MESSAGE_TRAY |
+            Shell.ActionMode.OVERVIEW,
+            Lang.bind(this, function() {
+                this._toggleMenu();
+            })
+        );
+    },
+
+    remove_keybindings: function() {
+        Main.wm.removeKeybinding(TOGGLE_MENU);
+    },
+
     /*
      * TODO
      */
     destroy: function () {
         this.parent();
-    },
+        this.remove_keybindings();
+    }
 });
 
 let _indicator;
