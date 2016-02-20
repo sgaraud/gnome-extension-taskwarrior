@@ -32,9 +32,8 @@ const GLib = imports.gi.GLib;
 const ExtensionUtils = imports.misc.extensionUtils;
 const Me = ExtensionUtils.getCurrentExtension();
 const Convenience = Me.imports.convenience;
-
-const TaskMenuItem = Me.imports.taskMenuItem;
-const TOGGLE_MENU = "toggle-menu";
+const Prefs = Me.imports.prefs;
+const Ui = Me.imports.ui;
 
 let TW_ICON = Gio.icon_new_for_string(Me.path + "/icons/Taskwarrior_icon.png");
 let TW_SITE = 'https://taskwarrior.org/download/';
@@ -226,7 +225,7 @@ const TaskW = new Lang.Class({
 
     add_keybindings: function() {
         Main.wm.addKeybinding(
-            TOGGLE_MENU,
+            Prefs.TOGGLE_MENU,
             Schema,
             Meta.KeyBindingFlags.NONE,
             Shell.ActionMode.NORMAL |
@@ -239,7 +238,7 @@ const TaskW = new Lang.Class({
     },
 
     remove_keybindings: function() {
-        Main.wm.removeKeybinding(TOGGLE_MENU);
+        Main.wm.removeKeybinding(Prefs.TOGGLE_MENU);
     },
 
     /*
@@ -247,7 +246,6 @@ const TaskW = new Lang.Class({
      */
     destroy: function () {
         this.parent();
-        this.remove_keybindings();
     }
 });
 

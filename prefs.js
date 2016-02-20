@@ -6,16 +6,18 @@ const Lang = imports.lang;
 
 const Params = imports.misc.params;
 
-const Me = imports.misc.extensionUtils.getCurrentExtension();
-const Utils = Me.imports.utils;
+const ExtensionUtils = imports.misc.extensionUtils;
+const Me = ExtensionUtils.getCurrentExtension();
+const Convenience = Me.imports.convenience;
 
 const Gettext = imports.gettext.domain('taskwarrior-integration');
 const _ = Gettext.gettext;
 
 const TOGGLE_MENU = 'toggle-menu';
+let Schema = null;
 
 function init() {
-    
+    Schema = Convenience.getSettings();
 }
 
 const KeybindingsWidget = new GObject.Class({
@@ -87,7 +89,7 @@ const KeybindingsWidget = new GObject.Class({
                     [this._columns.MODS, this._columns.KEY],
                     [mods, key]
                 );
-                Utils.SETTINGS.set_strv(name, [value]);
+                Schema.set_strv(name, [value]);
             })
         );
 
@@ -118,7 +120,7 @@ const KeybindingsWidget = new GObject.Class({
 
         for(let settings_key in this._keybindings) {
             let [key, mods] = Gtk.accelerator_parse(
-                Utils.SETTINGS.get_strv(settings_key)[0]
+                Schema.get_strv(settings_key)[0]
             );
 
             let iter = this._store.append();
@@ -152,128 +154,6 @@ const PrefsGrid = new GObject.Class({
         this._rownum = 0;
     },
 
-    add_entry: function(text, key) {
-        let item = new Gtk.Entry({
-            hexpand: false
-        });
-        item.text = this._settings.get_string(key);
-        this._settings.bind(key, item, 'text', Gio.SettingsBindFlags.DEFAULT);
-
-        return this.add_row(text, item);
-    },
-
-    add_shortcut: function(text, settings_key) {
-        let item = new Gtk.Entry({
-            hexpand: false
-        });
-        item.set_text(this._settings.get_strv(settings_key)[0]);
-        item.connect('changed', Lang.bind(this, function(entry) {
-            let [key, mods] = Gtk.accelerator_parse(entry.get_text());
-
-            if(Gtk.accelerator_valid(key, mods)) {
-                let shortcut = Gtk.accelerator_name(key, mods);
-                this._settings.set_strv(settings_key, [shortcut]);
-            }
-        }));
-
-        return this.add_row(text, item);
-    },
-
-    add_boolean: function(text, key) {
-        let item = new Gtk.Switch({
-            active: this._settings.get_boolean(key)
-        });
-        this._settings.bind(key, item, 'active', Gio.SettingsBindFlags.DEFAULT);
-
-        return this.add_row(text, item);
-    },
-
-    add_combo: function(text, key, list, type) {
-        let item = new Gtk.ComboBoxText();
-
-        for(let i = 0; i < list.length; i++) {
-            let title = list[i].title.trim();
-            let id = list[i].value.toString();
-            item.insert(-1, id, title);
-        }
-
-        if(type === 'string') {
-            item.set_active_id(this._settings.get_string(key));
-        }
-        else {
-            item.set_active_id(this._settings.get_int(key).toString());
-        }
-
-        item.connect('changed', Lang.bind(this, function(combo) {
-            let value = combo.get_active_id();
-
-            if(type === 'string') {
-                if(this._settings.get_string(key) !== value) {
-                    this._settings.set_string(key, value);
-                }
-            }
-            else {
-                value = parseInt(value, 10);
-
-                if(this._settings.get_int(key) !== value) {
-                    this._settings.set_int(key, value);
-                }
-            }
-        }));
-
-        return this.add_row(text, item);
-    },
-
-    add_spin: function(label, key, adjustment_properties, type, spin_properties) {
-        adjustment_properties = Params.parse(adjustment_properties, {
-            lower: 0,
-            upper: 100,
-            step_increment: 100
-        });
-        let adjustment = new Gtk.Adjustment(adjustment_properties);
-
-        spin_properties = Params.parse(spin_properties, {
-            adjustment: adjustment,
-            numeric: true,
-            snap_to_ticks: true
-        }, true);
-        let spin_button = new Gtk.SpinButton(spin_properties);
-
-        if(type !== 'int') spin_button.set_digits(2);
-
-        let get_method = type === 'int' ? 'get_int' : 'get_double';
-        let set_method = type === 'int' ? 'set_int' : 'set_double';
-
-        spin_button.set_value(this._settings[get_method](key));
-        spin_button.connect('value-changed', Lang.bind(this, function(spin) {
-            let value
-
-            if(type === 'int') value = spin.get_value_as_int();
-            else value = spin.get_value();
-
-            if(this._settings[get_method](key) !== value) {
-                this._settings[set_method](key, value);
-            }
-        }));
-
-        return this.add_row(label, spin_button, true);
-    },
-
-    add_row: function(text, widget, wrap) {
-        let label = new Gtk.Label({
-            label: text,
-            hexpand: true,
-            halign: Gtk.Align.START
-        });
-        label.set_line_wrap(wrap || false);
-
-        this.attach(label, 0, this._rownum, 1, 1); // col, row, colspan, rowspan
-        this.attach(widget, 1, this._rownum, 1, 1);
-        this._rownum++;
-
-        return widget;
-    },
-
     add_item: function(widget, col, colspan, rowspan) {
         this.attach(
             widget,
@@ -285,52 +165,7 @@ const PrefsGrid = new GObject.Class({
         this._rownum++;
 
         return widget;
-    },
-
-    add_range: function(label, key, range_properties) {
-        range_properties = Params.parse(range_properties, {
-            min: 0,
-            max: 100,
-            step: 10,
-            mark_position: 0,
-            add_mark: false,
-            size: 200,
-            draw_value: true
-        });
-
-        let range = Gtk.Scale.new_with_range(
-            Gtk.Orientation.HORIZONTAL,
-            range_properties.min,
-            range_properties.max,
-            range_properties.step
-        );
-        range.set_value(this._settings.get_int(key));
-        range.set_draw_value(range_properties.draw_value);
-
-        if(range_properties.add_mark) {
-            range.add_mark(
-                range_properties.mark_position,
-                Gtk.PositionType.BOTTOM,
-                null
-            );
-        }
-
-        range.set_size_request(range_properties.size, -1);
-
-        range.connect('value-changed', Lang.bind(this, function(slider) {
-            this._settings.set_int(key, slider.get_value());
-        }));
-
-        return this.add_row(label, range, true);
-    },
-
-    add_separator: function() {
-        let separator = new Gtk.Separator({
-            orientation: Gtk.Orientation.HORIZONTAL
-        });
-
-        this.add_item(separator, 0, 2, 1);
-    },
+    }
 });
 
 const TaskwarriorIntegrationPrefsWidget = new GObject.Class({
@@ -341,7 +176,6 @@ const TaskwarriorIntegrationPrefsWidget = new GObject.Class({
     _init: function (params) {
         this.parent(params);
         this.set_orientation(Gtk.Orientation.VERTICAL);
-        this._settings = Utils.getSettings();
 
         let keybindings = this._get_keybindings_page();
 
@@ -365,11 +199,11 @@ const TaskwarriorIntegrationPrefsWidget = new GObject.Class({
 
     _get_keybindings_page: function() {
         let name = _("Shortcuts");
-        let page = new PrefsGrid(Utils.SETTINGS);
+        let page = new PrefsGrid(Schema);
 
         let keybindings = {};
         keybindings[TOGGLE_MENU] =
-            _("bla bla bla");
+            _("Open taskwarrior list");
 
         let keybindings_widget = new KeybindingsWidget(keybindings);
         keybindings_widget.set_sensitive(true);
