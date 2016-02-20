@@ -5,6 +5,6 @@ echo "Compile schema"
 glib-compile-schemas ./schemas/
 
 echo "Create zip archive"
-zip -r taskwarrior-integration@sgaraud.github.com.zip . -x *.git*
+zip -r taskwarrior-integration@sgaraud.github.com.zip . -x \*.git* \*.idea*
 
 echo "Done."
