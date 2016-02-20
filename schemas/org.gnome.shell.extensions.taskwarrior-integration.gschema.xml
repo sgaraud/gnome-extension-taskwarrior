@@ -1,0 +1,10 @@
+<schemalist gettext-domain="gnome-shell-extensions">
+  <schema id="org.gnome.shell.extensions.taskwarrior-integration"
+      path="/org/gnome/shell/extensions/taskwarrior-integration/">
+    <key name="toggle-menu" type="as">
+      <default><![CDATA[['<Ctrl>F8']]]></default>
+      <summary>Toggle the menu</summary>
+      <description>Key to toggle the taskwarrior menu</description>
+    </key>
+  </schema>
+</schemalist>
