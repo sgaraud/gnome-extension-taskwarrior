@@ -1,1 +1,7 @@
-{"name": "Taskwarrior Integration", "uuid": "taskwarrior-integration@sgaraud.github.com", "description": "Access Taskwarrior from the Gnome Shell", "shell-version": ["3.8","3.10","3.12","3.14","3.16","3.18"]}
+{"name": "Taskwarrior Integration",
+  "uuid": "taskwarrior-integration@sgaraud.github.com",
+  "gettext-domain": "taskwarrior-integration",
+  "settings-schema": "org.gnome.shell.extensions.taskwarrior-integration",
+  "description": "Access Taskwarrior from the Gnome Shell",
+  "url": "https://github.com/sgaraud/gnome-extension-taskwarrior",
+  "shell-version": ["3.8","3.10","3.12","3.14","3.16","3.18"]}
