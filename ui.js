@@ -36,6 +36,22 @@ const ExtensionUtils = imports.misc.extensionUtils;
 const Me = ExtensionUtils.getCurrentExtension();
 const Convenience = Me.imports.convenience;
 
+const LABEL_EMPTY = "    ";
+
+const LABEL_PROJECT = "project: ";
+const LABEL_PRIORITY = "priority: ";
+//const LABEL_URGENCY = "urgency: ";
+const LABEL_ENTERED = "entered: ";
+//const LABEL_MODIFIED = "modified: ";
+const LABEL_DUE = "due: ";
+const LABEL_TAGS = "tags: ";
+
+const LABEL_DELETE = "delete";
+const LABEL_MODIFY = "modify";
+const LABEL_DONE = "done";
+const LABEL_START = "start";
+const LABEL_STOP = "stop";
+
 /*
  * Class for widget handling add new task field
  */
@@ -67,7 +83,7 @@ const TaskwarriorShellEntry = new Lang.Class({
     },
 
     cmd: function(text) {
-        // TODO handle
+        // TODO handle launch cmd + character escape
         log(text);
         // Reset type command
         this._entry.text = '';
@@ -94,12 +110,18 @@ const TaskwarriorMenuItem = new Lang.Class({
     _init: function(params) {
         this.parent(params);
 
-        // Remove widget for reordering with extra button
+        // Remove some original widget parts for reordering with extra buttons
         this._triangleBin.remove_child(this._triangle);
         this.actor.remove_child(this._triangleBin);
 
-        this._button_done = new Button(_('done'));
+        this._button_done = new Button(LABEL_DONE);
         this.actor.add_child(this._button_done.actor);
+
+        this._button_start = new Button(LABEL_START);
+        this.actor.add_child(this._button_start.actor);
+
+        this._button_stop = new Button(LABEL_STOP);
+        this.actor.add_child(this._button_stop.actor);
 
         this._triangleBin.add_child(this._triangle);
         this.actor.add_child(this._triangleBin);
@@ -108,28 +130,78 @@ const TaskwarriorMenuItem = new Lang.Class({
 });
 
 /*
- * Class for widget handling advanced display information and advanced buttons like modify, start, etc ...
+ * Class for widget handling advanced display information and advanced buttons like delete, etc ...
  */
-const TaskwarriorMenuAdvancedItem = new Lang.Class({
+const TaskwarriorMenuAdvancedItem1 = new Lang.Class({
     Name: 'Taskwarrior.MenuAdvancedItem',
     Extends: PopupMenu.PopupBaseMenuItem,
 
     _init: function(task) {
         this.parent();
 
-        this._button_del = new Button(_('delete'));
-        this._button_modify = new Button(_('modify'));
-        this._button_start = new Button(_('start'));
-        this._button_stop = new Button(_('stop'));
+        this.label_project = new St.Label({ text: LABEL_PROJECT + LABEL_EMPTY });
+        this.label_priority = new St.Label({ text: LABEL_PRIORITY + LABEL_EMPTY });
+        this.label_entered = new St.Label({ text: LABEL_ENTERED +LABEL_EMPTY });
 
-        this.actor.add_child(this._button_del.actor);
+        if (task.project != null) {
+            this.label_project = new St.Label({ text: LABEL_PROJECT + task.project });
+        }
+        if (task.priority != null) {
+            this.label_priority = new St.Label({ text: LABEL_PRIORITY + task.priority });
+        }
+
+        if (task.entry != null) {
+            this.label_entered = new St.Label({ text: LABEL_ENTERED + task.entry });
+        }
+
+
+        this.actor.add_child(this.label_project);
+        this.actor.add_child(this.label_priority);
+        this.actor.add_child(this.label_entered);
+        //this.actor.label_actor = this.label_project ;
+
+        let expander = new St.Bin({ style_class: 'popup-menu-item-expander' });
+        this.actor.add(expander, { expand: true });
+
+        this._button_modify = new Button(LABEL_MODIFY);
         this.actor.add_child(this._button_modify.actor);
-        this.actor.add_child(this._button_start.actor);
-        this.actor.add_child(this._button_stop.actor);
 
-        this.label_uuid = new St.Label({ text: task.urgency.toString() });
-        this.actor.add_child(this.label_uuid );
-        this.actor.label_actor = this.label_uuid ;
+    },
+
+    setStatus: function(text) {
+    }
+
+});
+
+/*
+ * Class for widget handling advanced display information and advanced buttons like delete, etc ...
+ */
+const TaskwarriorMenuAdvancedItem2 = new Lang.Class({
+    Name: 'Taskwarrior.MenuAdvancedItem',
+    Extends: PopupMenu.PopupBaseMenuItem,
+
+    _init: function(task) {
+        this.parent();
+
+        this.label_due = new St.Label({ text: LABEL_DUE + LABEL_EMPTY });
+        this.label_tags = new St.Label({ text: LABEL_TAGS + LABEL_EMPTY });
+
+        if (task.due != null) {
+            this.label_due = new St.Label({ text: LABEL_DUE + task.due });
+        }
+        if (task.tags != null) {
+            this.label_tags = new St.Label({ text: LABEL_TAGS + task.tags });
+        }
+
+        this.actor.add_child(this.label_due);
+        this.actor.add_child(this.label_tags);
+
+        let expander = new St.Bin({ style_class: 'popup-menu-item-expander' });
+        this.actor.add(expander, { expand: true });
+
+        this._button_del = new Button(LABEL_DELETE);
+        this.actor.add_child(this._button_del.actor);
+
     },
 
     setStatus: function(text) {

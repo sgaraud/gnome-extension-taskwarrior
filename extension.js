@@ -62,9 +62,14 @@ const Task = new Lang.Class({
     _init: function (task) {
         this.uuid = task.uuid;
         this.id = task.id;
-        this.entry = task.entry;
         this.description = task.description;
+        this.entry = task.entry;
+        this.modified = task.modified;
+        this.due = task.due;
         this.urgency = task.urgency;
+        this.priority = task.priority;
+        this.project = task.project;
+        this.tags = task.tags;
     },
 });
 
@@ -186,7 +191,6 @@ const TaskWarrior = new Lang.Class({
 
     /*
      * Function displaying main UI.
-     * TODO
      */
     _buildMainUi: function () {
         log("_buildMainUi");
@@ -201,14 +205,16 @@ const TaskWarrior = new Lang.Class({
         // Lists the current tasks as in the taskList struct
         for (let task of this.taskList) {
 
-            // Sub menu with buttons delete, modify, start and stop
-            // Show extra tasks infos project, urgency, age
-            let itemSub = new Ui.TaskwarriorMenuAdvancedItem(task);
+            // Sub menu with buttons delete, modify
+            // Show extra tasks infos project, urgency, date
+            let itemSub1 = new Ui.TaskwarriorMenuAdvancedItem1(task);
+            let itemSub2 = new Ui.TaskwarriorMenuAdvancedItem2(task);
 
             // Show task description + button when task is done + arrow to expand with extra options
-            let item = new Ui.TaskwarriorMenuItem(task.description.toString());
+            let item = new Ui.TaskwarriorMenuItem(task.description);
 
-            item.menu.addMenuItem(itemSub);
+            item.menu.addMenuItem(itemSub1);
+            item.menu.addMenuItem(itemSub2);
             this.menu.addMenuItem(item);
         }
     },
