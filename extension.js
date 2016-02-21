@@ -23,11 +23,13 @@ const Meta       = imports.gi.Meta;
 const Shell      = imports.gi.Shell;
 const ShellEntry = imports.ui.shellEntry;
 const Main = imports.ui.main;
+const Mainloop = imports.mainloop;
 const PanelMenu = imports.ui.panelMenu;
 const PopupMenu = imports.ui.popupMenu;
 const Gio = imports.gi.Gio;
 const Util = imports.misc.util;
 const GLib = imports.gi.GLib;
+const Gtk = imports.gi.Gtk;
 
 const ExtensionUtils = imports.misc.extensionUtils;
 const Me = ExtensionUtils.getCurrentExtension();
@@ -56,7 +58,7 @@ function init() {
 }
 
 const Task = new Lang.Class({
-    Name: 'Task.Task',
+    Name: 'Task',
     _init: function (task) {
         this.uuid = task.uuid;
         this.id = task.id;
@@ -66,8 +68,8 @@ const Task = new Lang.Class({
     },
 });
 
-const TaskW = new Lang.Class({
-    Name: 'TaskW.TaskW',
+const TaskWarrior = new Lang.Class({
+    Name: 'Task.Warrior',
     Extends: PanelMenu.Button,
 
     _init: function () {
@@ -79,7 +81,9 @@ const TaskW = new Lang.Class({
         this.actor.add_child(nbox);
         this.actor.show();
 
+        // TODO if not existing yet
         this._bindShortcuts();
+
         keybindingChangedId = Schema.connect('changed', Lang.bind(this, this._bindShortcuts));
 
         if (this._versionCheck()) {
@@ -89,16 +93,16 @@ const TaskW = new Lang.Class({
     },
 
     _update: function (cmd) {
-        this.menu.removeAll();
+        log("_update");
         this._export(PENDING);
-        this._buildMainUI();
+        this._buildMainUi();
     },
 
     /*
      * Function to query data from Taskwarrior and create local task array
      */
     _export: function (st) {
-
+        log("_export");
         this.taskList = [];
 
         try {
@@ -185,31 +189,22 @@ const TaskW = new Lang.Class({
      * Function displaying main UI with all task entries.
      * TODO
      */
-    _buildMainUI: function () {
-
-        this._entry = new St.Entry({ can_focus: true, hint_text: _('Add new task...'), track_hover: true});
-        ShellEntry.addContextMenu(this._entry);
-
-        //https://searchcode.com/codesearch/view/22648000/
-        //this.menu.addMenuItem("fuck");
-
+    _buildMainUi: function () {
+        log("_buildMainUi");
+        this.menu.removeAll();
+        this.menu.addMenuItem(new Ui.TaskwarriorShellEntry());
         for (let task of this.taskList) {
-            this.menu.addMenuItem(new PopupMenu.PopupMenuItem(task.description.toString()));
+            this.menu.addMenuItem(new Ui.TaskwarriorMenuItem(task.description.toString()));
         }
 
-
-    },
-
-    /*
-     * Function used as template for a single task UI, managing actions buttons
-     * TODO
-     */
-    _buildTaskUI: function () {
-
+        this.itemClip3 = new Ui.TaskwarriorMenuAdvancedItem();
+        this.itemClip4 = new PopupMenu.PopupSubMenuMenuItem(_("heheheheh"));
+        this.itemClip4.menu.addMenuItem(this.itemClip3);
+        this.menu.addMenuItem(this.itemClip4);
     },
 
     _toggleMenu: function() {
-        log("zetoggle");
+        log("_toogleMenu");
         if(this.menu.visible) {
             this.menu.close();
         }
@@ -252,7 +247,7 @@ const TaskW = new Lang.Class({
 let _indicator;
 
 function enable() {
-    _indicator = new TaskW;
+    _indicator = new TaskWarrior;
     Main.panel.addToStatusArea('Taskwarrior-extension', _indicator);
 }
 
