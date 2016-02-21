@@ -157,7 +157,6 @@ const TaskWarrior = new Lang.Class({
      * return: true if taskwarrior client is ok. false otherwise.
      */
     _versionCheck: function () {
-
         try {
             let [res, out, err, status] = GLib.spawn_command_line_sync(TW_BIN + VERSION);
             let version = new String(out);
@@ -178,32 +177,44 @@ const TaskWarrior = new Lang.Class({
      * Function redirecting to Taskwarrior website download section
      */
     _goToWebsite: function (msg) {
-        this.item = new PopupMenu.PopupMenuItem(msg);
-        this.menu.addMenuItem(this.item);
-        this.itemId = this.item.connect('activate', function () {
+        let item = new PopupMenu.PopupMenuItem(msg);
+        this.menu.addMenuItem(item);
+        this.goToWebsiteItemId = item.connect('activate', function () {
             Util.spawnCommandLine(OPEN_BROWSER + " " + TW_SITE);
         });
     },
 
     /*
-     * Function displaying main UI with all task entries.
+     * Function displaying main UI.
      * TODO
      */
     _buildMainUi: function () {
         log("_buildMainUi");
-        this.menu.removeAll();
-        this.menu.addMenuItem(new Ui.TaskwarriorShellEntry());
-        for (let task of this.taskList) {
-            this.menu.addMenuItem(new Ui.TaskwarriorMenuItem(task.description.toString()));
-        }
 
-        this.itemClip3 = new Ui.TaskwarriorMenuAdvancedItem();
-        this.itemClip4 = new PopupMenu.PopupSubMenuMenuItem(_("heheheheh"));
-        this.itemClip4.menu.addMenuItem(this.itemClip3);
-        this.menu.addMenuItem(this.itemClip4);
+        // Rebuild completely the menu with updated data
+        this.menu.removeAll();
+
+        // Display entry field for Adding Tasks
+        this.menu.addMenuItem(new Ui.TaskwarriorShellEntry());
+        //this.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
+
+        // Lists the current tasks as in the taskList struct
+        for (let task of this.taskList) {
+
+            // Sub menu with buttons delete, modify, start and stop
+            // Show extra tasks infos project, urgency, age
+            let itemSub = new Ui.TaskwarriorMenuAdvancedItem(task);
+
+            // Show task description + button when task is done + arrow to expand with extra options
+            let item = new Ui.TaskwarriorMenuItem(task.description.toString());
+
+            item.menu.addMenuItem(itemSub);
+            this.menu.addMenuItem(item);
+        }
     },
 
     _toggleMenu: function() {
+        // TODO fix not closing
         log("_toogleMenu");
         if(this.menu.visible) {
             this.menu.close();
@@ -237,7 +248,7 @@ const TaskWarrior = new Lang.Class({
     },
 
     /*
-     * TODO
+     * TODO complete
      */
     destroy: function () {
         this.parent();

@@ -30,51 +30,15 @@ const PopupMenu = imports.ui.popupMenu;
 const PanelMenu = imports.ui.panelMenu;
 const Atk = imports.gi.Atk;
 const Clutter = imports.gi.Clutter;
+const Tweener = imports.ui.tweener;
 
 const ExtensionUtils = imports.misc.extensionUtils;
 const Me = ExtensionUtils.getCurrentExtension();
 const Convenience = Me.imports.convenience;
 
-const TaskwarriorMenuItem = new Lang.Class({
-    Name: 'Taskwarrior.MenuItem',
-    Extends: PopupMenu.PopupBaseMenuItem,
-
-    _init: function(text, active, params) {
-        this.parent(params);
-
-        this.label = new St.Label({ text: text });
-        this._button = new Button();
-
-        /*this.actor.accessible_role = Atk.Role.CHECK_MENU_ITEM;
-        this.checkAccessibleState();*/
-        //this.actor.label_actor = this.label;
-
-        this.actor.add_child(this.label);
-        this._statusBin = new St.Bin({ x_align: St.Align.END });
-        this.actor.add(this._statusBin, { expand: true, x_align: St.Align.END });
-        this._statusBin.child = this._button.actor;
-
-    },
-
-    setStatus: function(text) {
-    },
-
-    activate: function(event) {
-  /*      if (this._button.actor.mapped) {
-            this.toggle();
-        }
-*/
-        // we allow pressing space to toggle the switch
-        // without closing the menu
-        if (event.type() == Clutter.EventType.KEY_PRESS &&
-            event.get_key_symbol() == Clutter.KEY_space)
-            return;
-
-        this.parent(event);
-    }
-
-});
-
+/*
+ * Class for widget handling add new task field
+ */
 const TaskwarriorShellEntry = new Lang.Class({
     Name: 'Taskwarrior.ShellEntry',
     Extends: PopupMenu.PopupBaseMenuItem,
@@ -86,65 +50,89 @@ const TaskwarriorShellEntry = new Lang.Class({
         ShellEntry.addContextMenu(this._entry);
         this.actor.add_child(this._entry);
 
+        this._entry.clutter_text.connect('activate', Lang.bind(this, function (o, e) {
+
+            let text = o.get_text();
+            // Ensure no newlines in the data
+            text = text.replace('\n', ' ');
+            // Or leading and trailing whitespaces
+            text = text.replace(/^\s+/g, '').replace(/\s+$/g, '');
+            if (text == '') {
+                return true;
+            }
+            this.cmd(text);
+            return true;
+        }));
+
     },
 
-    setStatus: function(text) {
+    cmd: function(text) {
+        // TODO handle
+        log(text);
+        // Reset type command
+        this._entry.text = '';
     },
 
     activate: function(event) {
-        /*      if (this._button.actor.mapped) {
-         this.toggle();
-         }
-         */
-        // TODO fix
-        // we allow pressing space to toggle the switch
-        // without closing the menu
-        log(event.get_key_symbol());
-        if (event.type() == Clutter.EventType.BUTTON_RELEASE ||
-            event.get_key_symbol() == Clutter.KEY_space)
+        // Allow mouse click to enter entry box without closing the menu
+        // TODO Allow pressing TAB to enter entry box event.get_key_symbol() == Clutter.KEY_Tab
+        if (event.type() == Clutter.EventType.BUTTON_RELEASE ) {
             return;
-
+        }
         this.parent(event);
     }
 
 });
 
-const TaskwarriorMenuAdvancedItem = new Lang.Class({
-    Name: 'Taskwarrior.MenuAdvancedItem',
-    Extends: PopupMenu.PopupBaseMenuItem,
+/*
+ * Class for widget handling core display information (task description and done button)
+ */
+const TaskwarriorMenuItem = new Lang.Class({
+    Name: 'Taskwarrior.MenuItem',
+    Extends: PopupMenu.PopupSubMenuMenuItem,
 
     _init: function(params) {
         this.parent(params);
 
-        this._button1 = new St.Button({ label: _("delete") });
-        this._button2 = new St.Button({ label: _("modify") });
-        this._button3 = new St.Button({ label: _("project") });
+        // Remove widget for reordering with extra button
+        this._triangleBin.remove_child(this._triangle);
+        this.actor.remove_child(this._triangleBin);
 
-        /*this.actor.accessible_role = Atk.Role.CHECK_MENU_ITEM;
-         this.checkAccessibleState();*/
-        //this.actor.label_actor = this.label;
+        this._button_done = new Button(_('done'));
+        this.actor.add_child(this._button_done.actor);
 
-        this.actor.add_child(this._button1);
-        this.actor.add_child(this._button2);
-        this.actor.add_child(this._button3);
+        this._triangleBin.add_child(this._triangle);
+        this.actor.add_child(this._triangleBin);
 
+    }
+});
+
+/*
+ * Class for widget handling advanced display information and advanced buttons like modify, start, etc ...
+ */
+const TaskwarriorMenuAdvancedItem = new Lang.Class({
+    Name: 'Taskwarrior.MenuAdvancedItem',
+    Extends: PopupMenu.PopupBaseMenuItem,
+
+    _init: function(task) {
+        this.parent();
+
+        this._button_del = new Button(_('delete'));
+        this._button_modify = new Button(_('modify'));
+        this._button_start = new Button(_('start'));
+        this._button_stop = new Button(_('stop'));
+
+        this.actor.add_child(this._button_del.actor);
+        this.actor.add_child(this._button_modify.actor);
+        this.actor.add_child(this._button_start.actor);
+        this.actor.add_child(this._button_stop.actor);
+
+        this.label_uuid = new St.Label({ text: task.urgency.toString() });
+        this.actor.add_child(this.label_uuid );
+        this.actor.label_actor = this.label_uuid ;
     },
 
     setStatus: function(text) {
-    },
-
-    activate: function(event) {
-        /*      if (this._button.actor.mapped) {
-         this.toggle();
-         }
-         */
-        // we allow pressing space to toggle the switch
-        // without closing the menu
-        if (event.type() == Clutter.EventType.KEY_PRESS &&
-            event.get_key_symbol() == Clutter.KEY_space)
-            return;
-
-        this.parent(event);
     }
 
 });
@@ -152,8 +140,7 @@ const TaskwarriorMenuAdvancedItem = new Lang.Class({
 const Button = new Lang.Class({
     Name: 'Button',
 
-    _init: function(state) {
-        let text = 'done';
+    _init: function(text) {
         this.actor = new St.Button({ reactive: true,
             track_hover: true,
             label: text });
@@ -163,7 +150,7 @@ const Button = new Lang.Class({
     },
 
     _onClicked: function() {
-        log('bang');
+        log(this.actor.get_label());
     },
 
     toggle: function() {
