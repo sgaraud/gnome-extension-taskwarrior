@@ -139,7 +139,6 @@ const TaskwarriorMenuAdvancedItem1 = new Lang.Class({
             this.label_entered = new St.Label({ text: Taskwarrior.LABEL_ENTERED + task.entry });
         }
 
-
         this.actor.add_child(this.label_project);
         this.actor.add_child(this.label_priority);
         this.actor.add_child(this.label_entered);

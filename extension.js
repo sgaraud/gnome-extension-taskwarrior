@@ -136,6 +136,7 @@ const TaskMain = new Lang.Class({
             let itemSub2 = new Ui.TaskwarriorMenuAdvancedItem2(task);
 
             // Show task description + button when task is done + arrow to expand with extra options
+            // TODO just give task instead of double params
             let item = new Ui.TaskwarriorMenuItem(task.description, task.uuid);
 
             item.menu.addMenuItem(itemSub1);

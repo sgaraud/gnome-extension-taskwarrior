@@ -61,6 +61,7 @@ const LABEL_TAGS = "tags: ";
 
 /*
  * Dispatch table for possible cmd towards taskwarrior
+ * TODO clean-up implementation
  */
 var taskwarriorCmds = {
     delete: function (uuid) {
