@@ -36,19 +36,7 @@ const Me = ExtensionUtils.getCurrentExtension();
 const Convenience = Me.imports.convenience;
 const Prefs = Me.imports.prefs;
 const Ui = Me.imports.ui;
-
-let TW_ICON = Gio.icon_new_for_string(Me.path + "/icons/Taskwarrior_icon.png");
-let TW_SITE = 'https://taskwarrior.org/download/';
-let TW_BIN = 'task';
-let OPEN_BROWSER = 'xdg-open';
-
-let EXPORT = ' export';
-let VERSION = ' --version';
-let PENDING = ' status:pending';
-let DELETED = ' status:deleted';
-let COMPLETED = ' status:completed';
-let WAITING = ' status:waiting';
-let RECURRING = ' status:recurring';
+const Taskwarrior = Me.imports.taskwarrior;
 
 let keybindingChangedId = null;
 let Schema = null;
@@ -81,7 +69,7 @@ const TaskWarrior = new Lang.Class({
 
         this.parent(0.0, _("Taskwarrior Extension"));
         let nbox = new St.BoxLayout({style_class: 'panel-status-menu-box'});
-        this.icon = new St.Icon({gicon: TW_ICON, style_class: 'system-status-icon'});
+        this.icon = new St.Icon({gicon: Taskwarrior.TASK_ICON, style_class: 'system-status-icon'});
         nbox.add_child(this.icon);
         this.actor.add_child(nbox);
         this.actor.show();
@@ -99,7 +87,7 @@ const TaskWarrior = new Lang.Class({
 
     _update: function (cmd) {
         log("_update");
-        this._export(PENDING);
+        this._export(Taskwarrior.TASK_STATUS_PENDING);
         this._buildMainUi();
     },
 
@@ -112,7 +100,7 @@ const TaskWarrior = new Lang.Class({
 
         try {
             //[ok: Boolean, standard_output: ByteArray, standard_error: ByteArray, exit_status: Number(gint)]
-            let [res, out, err, status] = GLib.spawn_command_line_sync(TW_BIN + EXPORT + st);
+            let [res, out, err, status] = GLib.spawn_command_line_sync(Taskwarrior.TASK_BIN + Taskwarrior.TASK_EXPORT + st);
             let lines = (new String(out)).split('\n');
 
             for(let i = 0;i < lines.length;i++){
@@ -164,7 +152,7 @@ const TaskWarrior = new Lang.Class({
      */
     _versionCheck: function () {
         try {
-            let [res, out, err, status] = GLib.spawn_command_line_sync(TW_BIN + VERSION);
+            let [res, out, err, status] = GLib.spawn_command_line_sync(Taskwarrior.TASK_BIN + Taskwarrior.TASK_VERSION);
             let version = new String(out);
             let major = version.split('.')[0];
             if ( typeof major != 'string' || isNaN(major) || parseInt(major) < 2) {
@@ -186,7 +174,7 @@ const TaskWarrior = new Lang.Class({
         let item = new PopupMenu.PopupMenuItem(msg);
         this.menu.addMenuItem(item);
         this.goToWebsiteItemId = item.connect('activate', function () {
-            Util.spawnCommandLine(OPEN_BROWSER + " " + TW_SITE);
+            Util.spawnCommandLine(OPEN_BROWSER + " " + Taskwarrior.TASK_WEBSITE);
         });
     },
 
@@ -234,9 +222,9 @@ const TaskWarrior = new Lang.Class({
             Prefs.TOGGLE_MENU,
             Schema,
             Meta.KeyBindingFlags.NONE,
-            Shell.ActionMode.NORMAL |
-            Shell.ActionMode.MESSAGE_TRAY |
-            Shell.ActionMode.OVERVIEW,
+            Shell.KeyBindingMode.NORMAL |
+            Shell.KeyBindingMode.MESSAGE_TRAY |
+            Shell.KeyBindingMode.OVERVIEW,
             Lang.bind(this, function() {
                 this._toggleMenu();
             })

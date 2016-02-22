@@ -32,6 +32,7 @@ const Gettext = imports.gettext.domain('taskwarrior-integration');
 const _ = Gettext.gettext;
 
 const TOGGLE_MENU = 'toggle-menu';
+
 let Schema = null;
 
 function init() {

@@ -35,22 +35,7 @@ const Tweener = imports.ui.tweener;
 const ExtensionUtils = imports.misc.extensionUtils;
 const Me = ExtensionUtils.getCurrentExtension();
 const Convenience = Me.imports.convenience;
-
-const LABEL_EMPTY = "    ";
-
-const LABEL_PROJECT = "project: ";
-const LABEL_PRIORITY = "priority: ";
-//const LABEL_URGENCY = "urgency: ";
-const LABEL_ENTERED = "entered: ";
-//const LABEL_MODIFIED = "modified: ";
-const LABEL_DUE = "due: ";
-const LABEL_TAGS = "tags: ";
-
-const LABEL_DELETE = "delete";
-const LABEL_MODIFY = "modify";
-const LABEL_DONE = "done";
-const LABEL_START = "start";
-const LABEL_STOP = "stop";
+const Taskwarrior = Me.imports.taskwarrior;
 
 /*
  * Class for widget handling add new task field
@@ -83,8 +68,8 @@ const TaskwarriorShellEntry = new Lang.Class({
     },
 
     cmd: function(text) {
-        // TODO handle launch cmd + character escape
-        log(text);
+        // TODO handle character escape
+        Taskwarrior.taskwarriorCmds['add'](text);
         // Reset type command
         this._entry.text = '';
     },
@@ -110,17 +95,17 @@ const TaskwarriorMenuItem = new Lang.Class({
     _init: function(params) {
         this.parent(params);
 
-        // Remove some original widget parts for reordering with extra buttons
+        // Remove some original widget parts for rebuilding with the extra buttons
         this._triangleBin.remove_child(this._triangle);
         this.actor.remove_child(this._triangleBin);
 
-        this._button_done = new Button(LABEL_DONE);
+        this._button_done = new Button(Taskwarrior.LABEL_DONE);
         this.actor.add_child(this._button_done.actor);
 
-        this._button_start = new Button(LABEL_START);
+        this._button_start = new Button(Taskwarrior.LABEL_START);
         this.actor.add_child(this._button_start.actor);
 
-        this._button_stop = new Button(LABEL_STOP);
+        this._button_stop = new Button(Taskwarrior.LABEL_STOP);
         this.actor.add_child(this._button_stop.actor);
 
         this._triangleBin.add_child(this._triangle);
@@ -139,19 +124,19 @@ const TaskwarriorMenuAdvancedItem1 = new Lang.Class({
     _init: function(task) {
         this.parent();
 
-        this.label_project = new St.Label({ text: LABEL_PROJECT + LABEL_EMPTY });
-        this.label_priority = new St.Label({ text: LABEL_PRIORITY + LABEL_EMPTY });
-        this.label_entered = new St.Label({ text: LABEL_ENTERED +LABEL_EMPTY });
+        this.label_project = new St.Label({ text: Taskwarrior.LABEL_PROJECT + Taskwarrior.LABEL_EMPTY });
+        this.label_priority = new St.Label({ text: Taskwarrior.LABEL_PRIORITY + Taskwarrior.LABEL_EMPTY });
+        this.label_entered = new St.Label({ text: Taskwarrior.LABEL_ENTERED +Taskwarrior.LABEL_EMPTY });
 
         if (task.project != null) {
-            this.label_project = new St.Label({ text: LABEL_PROJECT + task.project });
+            this.label_project = new St.Label({ text: Taskwarrior.LABEL_PROJECT + task.project });
         }
         if (task.priority != null) {
-            this.label_priority = new St.Label({ text: LABEL_PRIORITY + task.priority });
+            this.label_priority = new St.Label({ text: Taskwarrior.LABEL_PRIORITY + task.priority });
         }
 
         if (task.entry != null) {
-            this.label_entered = new St.Label({ text: LABEL_ENTERED + task.entry });
+            this.label_entered = new St.Label({ text: Taskwarrior.LABEL_ENTERED + task.entry });
         }
 
 
@@ -163,7 +148,7 @@ const TaskwarriorMenuAdvancedItem1 = new Lang.Class({
         let expander = new St.Bin({ style_class: 'popup-menu-item-expander' });
         this.actor.add(expander, { expand: true });
 
-        this._button_modify = new Button(LABEL_MODIFY);
+        this._button_modify = new Button(Taskwarrior.LABEL_MODIFY);
         this.actor.add_child(this._button_modify.actor);
 
     },
@@ -183,14 +168,14 @@ const TaskwarriorMenuAdvancedItem2 = new Lang.Class({
     _init: function(task) {
         this.parent();
 
-        this.label_due = new St.Label({ text: LABEL_DUE + LABEL_EMPTY });
-        this.label_tags = new St.Label({ text: LABEL_TAGS + LABEL_EMPTY });
+        this.label_due = new St.Label({ text: Taskwarrior.LABEL_DUE + Taskwarrior.LABEL_EMPTY });
+        this.label_tags = new St.Label({ text: Taskwarrior.LABEL_TAGS + Taskwarrior.LABEL_EMPTY });
 
         if (task.due != null) {
-            this.label_due = new St.Label({ text: LABEL_DUE + task.due });
+            this.label_due = new St.Label({ text: Taskwarrior.LABEL_DUE + task.due });
         }
         if (task.tags != null) {
-            this.label_tags = new St.Label({ text: LABEL_TAGS + task.tags });
+            this.label_tags = new St.Label({ text: Taskwarrior.LABEL_TAGS + task.tags });
         }
 
         this.actor.add_child(this.label_due);
@@ -199,7 +184,7 @@ const TaskwarriorMenuAdvancedItem2 = new Lang.Class({
         let expander = new St.Bin({ style_class: 'popup-menu-item-expander' });
         this.actor.add(expander, { expand: true });
 
-        this._button_del = new Button(LABEL_DELETE);
+        this._button_del = new Button(Taskwarrior.LABEL_DELETE);
         this.actor.add_child(this._button_del.actor);
 
     },
@@ -222,8 +207,8 @@ const Button = new Lang.Class({
     },
 
     _onClicked: function() {
-        // TODO dispatch table ?
-        log(this.actor.get_label());
+        let action = Taskwarrior.taskwarriorCmds.hasOwnProperty(this.actor.get_label()) ? this.actor.get_label() : "default";
+        Taskwarrior.taskwarriorCmds[action]();
     },
 
     toggle: function() {
