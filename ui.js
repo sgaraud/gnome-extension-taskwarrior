@@ -68,7 +68,7 @@ const TaskwarriorShellEntry = new Lang.Class({
     },
 
     cmd: function(text) {
-        // TODO handle character escape
+        // TODO handle return value for error
         Taskwarrior.taskwarriorCmds['add'](text);
         // Reset type command
         this._entry.text = '';
@@ -92,20 +92,20 @@ const TaskwarriorMenuItem = new Lang.Class({
     Name: 'Taskwarrior.MenuItem',
     Extends: PopupMenu.PopupSubMenuMenuItem,
 
-    _init: function(params) {
-        this.parent(params);
+    _init: function(params, uuid) {
+        this.parent(params, uuid);
 
         // Remove some original widget parts for rebuilding with the extra buttons
         this._triangleBin.remove_child(this._triangle);
         this.actor.remove_child(this._triangleBin);
 
-        this._button_done = new Button(Taskwarrior.LABEL_DONE);
+        this._button_done = new Button(Taskwarrior.TASK_DONE, uuid);
         this.actor.add_child(this._button_done.actor);
 
-        this._button_start = new Button(Taskwarrior.LABEL_START);
+        this._button_start = new Button(Taskwarrior.TASK_START, uuid);
         this.actor.add_child(this._button_start.actor);
 
-        this._button_stop = new Button(Taskwarrior.LABEL_STOP);
+        this._button_stop = new Button(Taskwarrior.TASK_STOP, uuid);
         this.actor.add_child(this._button_stop.actor);
 
         this._triangleBin.add_child(this._triangle);
@@ -148,7 +148,7 @@ const TaskwarriorMenuAdvancedItem1 = new Lang.Class({
         let expander = new St.Bin({ style_class: 'popup-menu-item-expander' });
         this.actor.add(expander, { expand: true });
 
-        this._button_modify = new Button(Taskwarrior.LABEL_MODIFY);
+        this._button_modify = new Button(Taskwarrior.TASK_MODIFY, task.uuid);
         this.actor.add_child(this._button_modify.actor);
 
     },
@@ -184,7 +184,7 @@ const TaskwarriorMenuAdvancedItem2 = new Lang.Class({
         let expander = new St.Bin({ style_class: 'popup-menu-item-expander' });
         this.actor.add(expander, { expand: true });
 
-        this._button_del = new Button(Taskwarrior.LABEL_DELETE);
+        this._button_del = new Button(Taskwarrior.TASK_DELETE, task.uuid);
         this.actor.add_child(this._button_del.actor);
 
     },
@@ -197,7 +197,8 @@ const TaskwarriorMenuAdvancedItem2 = new Lang.Class({
 const Button = new Lang.Class({
     Name: 'Button',
 
-    _init: function(text) {
+    _init: function(text, uuid) {
+        this.taskid = uuid;
         this.actor = new St.Button({ reactive: true,
             track_hover: true,
             label: text });
@@ -208,7 +209,7 @@ const Button = new Lang.Class({
 
     _onClicked: function() {
         let action = Taskwarrior.taskwarriorCmds.hasOwnProperty(this.actor.get_label()) ? this.actor.get_label() : "default";
-        Taskwarrior.taskwarriorCmds[action]();
+        Taskwarrior.taskwarriorCmds[action](this.taskid);
     },
 
     toggle: function() {

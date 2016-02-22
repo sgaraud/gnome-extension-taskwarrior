@@ -24,7 +24,7 @@ const Lang = imports.lang;
 const Main = imports.ui.main;
 const St = imports.gi.St;
 const Params = imports.misc.params;
-const Shell      = imports.gi.Shell;
+const Shell = imports.gi.Shell;
 const ShellEntry = imports.ui.shellEntry;
 const PopupMenu = imports.ui.popupMenu;
 const PanelMenu = imports.ui.panelMenu;
@@ -36,19 +36,19 @@ const ExtensionUtils = imports.misc.extensionUtils;
 const Me = ExtensionUtils.getCurrentExtension();
 const Convenience = Me.imports.convenience;
 
+const SP = " ";
 const TASK_ICON = Gio.icon_new_for_string(Me.path + "/icons/Taskwarrior_icon.png");
 const TASK_WEBSITE = 'https://taskwarrior.org/download/';
 const TASK_BIN = 'task';
-const OPEN_BROWSER = 'xdg-open';
-const TASK_EXPORT = ' export';
-const TASK_VERSION = ' --version';
-const TASK_STATUS_PENDING = ' status:pending';
-
-const LABEL_DELETE = 'delete';
-const LABEL_MODIFY = 'modify';
-const LABEL_DONE = 'done';
-const LABEL_START = 'start';
-const LABEL_STOP = 'stop';
+const TASK_EXPORT = 'export';
+const TASK_ADD = 'add';
+const TASK_DONE = 'done';
+const TASK_DELETE = 'delete';
+const TASK_MODIFY = 'modify';
+const TASK_START = 'start';
+const TASK_STOP = 'stop';
+const TASK_VERSION = '--version';
+const TASK_STATUS_PENDING = 'status:pending';
 
 const LABEL_EMPTY = "    ";
 const LABEL_PROJECT = "project: ";
@@ -63,13 +63,99 @@ const LABEL_TAGS = "tags: ";
  * Dispatch table for possible cmd towards taskwarrior
  */
 var taskwarriorCmds = {
-    delete     : function() { log("yahoo1"); },
-    modify     : function() { log("yahoo2"); },
-    done       : function() { log("yahoo3"); },
-    start      : function() { log("yahoo4"); },
-    stop       : function() { log("yahoo5"); },
-    add        : function(text) { log(text); },
-    default    : function() { log("yahoo6"); }
+    delete: function (uuid) {
+        log(uuid);
+    },
+    modify: function () {
+        log("yahoo2");
+    },
+    done: function (uuid) { return _taskDone(uuid); },
+    start: function () {
+        log("yahoo4");
+    },
+    stop: function () {
+        log("yahoo5");
+    },
+    add: function (text) { log(text); return _addTask(text); },
+    export: function (st) { return _export(st); },
+    default: function () { log("unknown taskwarriorCmds"); }
 };
 
+const Task = new Lang.Class({
+    Name: 'Task',
+    _init: function (task) {
+        this.uuid = task.uuid;
+        this.id = task.id;
+        this.description = task.description;
+        this.entry = task.entry;
+        this.modified = task.modified;
+        this.due = task.due;
+        this.urgency = task.urgency;
+        this.priority = task.priority;
+        this.project = task.project;
+        this.tags = task.tags;
+    }
+});
 
+/*
+ * Function to export pending task list from Taskwarrior.
+ */
+function _export (st) {
+    log("_export");
+    let taskList = [];
+    try {
+        //[ok: Boolean, standard_output: ByteArray, standard_error: ByteArray, exit_status: Number(gint)]
+        let [res, out, err, status] = GLib.spawn_command_line_sync(TASK_BIN + SP + TASK_EXPORT + SP + st);
+        let lines = (new String(out)).split('\n');
+
+        for (let i = 0; i < lines.length; i++) {
+            // comma terminated in old taskwarrior versions
+            lines[i] = lines[i].replace(/,\s*$/, '');
+            if (lines[i].trim()) {
+                let json = JSON.parse(lines[i]);
+                let task = new Task(json);
+                taskList[i] = task;
+            }
+        }
+        return taskList;
+    } catch (err) {
+        log(err);
+        return;
+    }
+}
+
+/*
+ * Function to compose a valid command line as a simple way to add task into Taskwarrior.
+ */
+function _addTask(text) {
+    log("_addTask");
+    // TODO handle character escape
+    try {
+        let [res, out, err, status] = GLib.spawn_command_line_sync(TASK_BIN + SP + TASK_ADD + SP + text);
+        return res;
+    } catch (err) {
+        log(err);
+        return;
+    }
+}
+
+/*
+ * Function to mark one task as completed.
+ */
+function _taskDone(uuid) {
+    log("_taskDone");
+    try {
+        let [res, out, err, status] = GLib.spawn_command_line_sync(TASK_BIN + SP + uuid + SP + TASK_DONE);
+        return res;
+    } catch (err) {
+        log(err);
+        return;
+    }
+}
+
+/*
+ * TODO
+ */
+function _modifyTask(cmd) {
+
+}

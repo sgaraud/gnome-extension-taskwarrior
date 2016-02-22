@@ -38,6 +38,7 @@ const Prefs = Me.imports.prefs;
 const Ui = Me.imports.ui;
 const Taskwarrior = Me.imports.taskwarrior;
 
+const OPEN_BROWSER = 'xdg-open';
 let keybindingChangedId = null;
 let Schema = null;
 
@@ -45,24 +46,8 @@ function init() {
     Schema = Convenience.getSettings();
 }
 
-const Task = new Lang.Class({
-    Name: 'Task',
-    _init: function (task) {
-        this.uuid = task.uuid;
-        this.id = task.id;
-        this.description = task.description;
-        this.entry = task.entry;
-        this.modified = task.modified;
-        this.due = task.due;
-        this.urgency = task.urgency;
-        this.priority = task.priority;
-        this.project = task.project;
-        this.tags = task.tags;
-    },
-});
-
-const TaskWarrior = new Lang.Class({
-    Name: 'Task.Warrior',
+const TaskMain = new Lang.Class({
+    Name: 'Task.Main',
     Extends: PanelMenu.Button,
 
     _init: function () {
@@ -74,7 +59,7 @@ const TaskWarrior = new Lang.Class({
         this.actor.add_child(nbox);
         this.actor.show();
 
-        // TODO if not existing yet
+        // TODO what if not existing yet
         this._bindShortcuts();
 
         keybindingChangedId = Schema.connect('changed', Lang.bind(this, this._bindShortcuts));
@@ -87,63 +72,8 @@ const TaskWarrior = new Lang.Class({
 
     _update: function (cmd) {
         log("_update");
-        this._export(Taskwarrior.TASK_STATUS_PENDING);
-        this._buildMainUi();
-    },
-
-    /*
-     * Function to query data from Taskwarrior and create local task array
-     */
-    _export: function (st) {
-        log("_export");
-        this.taskList = [];
-
-        try {
-            //[ok: Boolean, standard_output: ByteArray, standard_error: ByteArray, exit_status: Number(gint)]
-            let [res, out, err, status] = GLib.spawn_command_line_sync(Taskwarrior.TASK_BIN + Taskwarrior.TASK_EXPORT + st);
-            let lines = (new String(out)).split('\n');
-
-            for(let i = 0;i < lines.length;i++){
-                // comma terminated in old taskwarrior versions
-                lines[i] = lines[i].replace(/,\s*$/, '');
-                if (lines[i].trim()) {
-                    let json = JSON.parse(lines[i]);
-                    let task = new Task(json);
-                    this.taskList[i] = task;
-                }
-            }
-        } catch (err) {
-            log(err);
-        }
-
-    },
-
-    /*
-     * Function to compose a valid command line as a simple way to put data into Taskwarrior.
-     */
-    _import: function (cmd) {
-
-    },
-
-    /*
-     * TODO
-     */
-    _addTask: function (cmd) {
-
-    },
-
-    /*
-     * TODO
-     */
-    _taskDone: function (cmd) {
-
-    },
-
-    /*
-     * TODO
-     */
-    _modifyTask: function (cmd) {
-
+        let taskList = Taskwarrior.taskwarriorCmds['export'](Taskwarrior.TASK_STATUS_PENDING);
+        this._buildMainUi(taskList);
     },
 
     /*
@@ -152,7 +82,7 @@ const TaskWarrior = new Lang.Class({
      */
     _versionCheck: function () {
         try {
-            let [res, out, err, status] = GLib.spawn_command_line_sync(Taskwarrior.TASK_BIN + Taskwarrior.TASK_VERSION);
+            let [res, out, err, status] = GLib.spawn_command_line_sync(Taskwarrior.TASK_BIN + Taskwarrior.SP + Taskwarrior.TASK_VERSION);
             let version = new String(out);
             let major = version.split('.')[0];
             if ( typeof major != 'string' || isNaN(major) || parseInt(major) < 2) {
@@ -174,14 +104,14 @@ const TaskWarrior = new Lang.Class({
         let item = new PopupMenu.PopupMenuItem(msg);
         this.menu.addMenuItem(item);
         this.goToWebsiteItemId = item.connect('activate', function () {
-            Util.spawnCommandLine(OPEN_BROWSER + " " + Taskwarrior.TASK_WEBSITE);
+            Util.spawnCommandLine(OPEN_BROWSER + Taskwarrior.SP + Taskwarrior.TASK_WEBSITE);
         });
     },
 
     /*
      * Function displaying main UI.
      */
-    _buildMainUi: function () {
+    _buildMainUi: function (list) {
         log("_buildMainUi");
 
         // Rebuild completely the menu with updated data
@@ -191,8 +121,13 @@ const TaskWarrior = new Lang.Class({
         this.menu.addMenuItem(new Ui.TaskwarriorShellEntry());
         //this.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
 
+        // If nothing to display
+        if (typeof list === "undefined") {
+            return;
+        }
+
         // Lists the current tasks as in the taskList struct
-        for (let task of this.taskList) {
+        for (let task of list) {
 
             // Sub menu with buttons delete, modify
             // Show extra tasks infos project, urgency, date
@@ -201,7 +136,7 @@ const TaskWarrior = new Lang.Class({
             let itemSub2 = new Ui.TaskwarriorMenuAdvancedItem2(task);
 
             // Show task description + button when task is done + arrow to expand with extra options
-            let item = new Ui.TaskwarriorMenuItem(task.description);
+            let item = new Ui.TaskwarriorMenuItem(task.description, task.uuid);
 
             item.menu.addMenuItem(itemSub1);
             item.menu.addMenuItem(itemSub2);
@@ -222,9 +157,9 @@ const TaskWarrior = new Lang.Class({
             Prefs.TOGGLE_MENU,
             Schema,
             Meta.KeyBindingFlags.NONE,
-            Shell.KeyBindingMode.NORMAL |
-            Shell.KeyBindingMode.MESSAGE_TRAY |
-            Shell.KeyBindingMode.OVERVIEW,
+            Shell.ActionMode.NORMAL |
+            Shell.ActionMode.MESSAGE_TRAY |
+            Shell.ActionMode.OVERVIEW,
             Lang.bind(this, function() {
                 this._toggleMenu();
             })
@@ -257,7 +192,7 @@ const TaskWarrior = new Lang.Class({
 let _indicator;
 
 function enable() {
-    _indicator = new TaskWarrior;
+    _indicator = new TaskMain;
     Main.panel.addToStatusArea('Taskwarrior-extension', _indicator);
 }
 
