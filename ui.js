@@ -133,7 +133,7 @@ const TaskwarriorMenuItem = new Lang.Class({
  * Class for widget handling advanced display information and advanced buttons like delete, etc ...
  */
 const TaskwarriorMenuAdvancedItem1 = new Lang.Class({
-    Name: 'Taskwarrior.MenuAdvancedItem',
+    Name: 'Taskwarrior.MenuAdvancedItem1',
     Extends: PopupMenu.PopupBaseMenuItem,
 
     _init: function(task) {
@@ -177,7 +177,7 @@ const TaskwarriorMenuAdvancedItem1 = new Lang.Class({
  * Class for widget handling advanced display information and advanced buttons like delete, etc ...
  */
 const TaskwarriorMenuAdvancedItem2 = new Lang.Class({
-    Name: 'Taskwarrior.MenuAdvancedItem',
+    Name: 'Taskwarrior.MenuAdvancedItem2',
     Extends: PopupMenu.PopupBaseMenuItem,
 
     _init: function(task) {
@@ -222,6 +222,7 @@ const Button = new Lang.Class({
     },
 
     _onClicked: function() {
+        // TODO dispatch table ?
         log(this.actor.get_label());
     },
 

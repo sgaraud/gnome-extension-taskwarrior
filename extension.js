@@ -116,6 +116,7 @@ const TaskWarrior = new Lang.Class({
             let lines = (new String(out)).split('\n');
 
             for(let i = 0;i < lines.length;i++){
+                // comma terminated in old taskwarrior versions
                 lines[i] = lines[i].replace(/,\s*$/, '');
                 if (lines[i].trim()) {
                     let json = JSON.parse(lines[i]);
@@ -207,6 +208,7 @@ const TaskWarrior = new Lang.Class({
 
             // Sub menu with buttons delete, modify
             // Show extra tasks infos project, urgency, date
+            // TODO refactor in only one class type
             let itemSub1 = new Ui.TaskwarriorMenuAdvancedItem1(task);
             let itemSub2 = new Ui.TaskwarriorMenuAdvancedItem2(task);
 
@@ -219,17 +221,9 @@ const TaskWarrior = new Lang.Class({
         }
     },
 
-    _toggleMenu: function() {
-        // TODO fix not closing
-        log("_toogleMenu");
-        if(this.menu.visible) {
-            this.menu.close();
-        }
-        else {
-            this.menu.open();
-        }
-    },
-
+    /*
+     * Keybindings to open or close the menu - key can be set in the extension pref menu
+     */
     _bindShortcuts: function() {
         this.remove_keybindings();
         this.add_keybindings();
@@ -251,6 +245,17 @@ const TaskWarrior = new Lang.Class({
 
     remove_keybindings: function() {
         Main.wm.removeKeybinding(Prefs.TOGGLE_MENU);
+    },
+
+    _toggleMenu: function() {
+        // TODO fix not closing
+        log("_toogleMenu");
+        if(this.menu.visible) {
+            this.menu.close();
+        }
+        else {
+            this.menu.open();
+        }
     },
 
     /*
