@@ -158,9 +158,9 @@ const TaskMain = new Lang.Class({
             Prefs.TOGGLE_MENU,
             Schema,
             Meta.KeyBindingFlags.NONE,
-            Shell.ActionMode.NORMAL |
-            Shell.ActionMode.MESSAGE_TRAY |
-            Shell.ActionMode.OVERVIEW,
+            Shell.KeyBindingMode.NORMAL |
+            Shell.KeyBindingMode.MESSAGE_TRAY |
+            Shell.KeyBindingMode.OVERVIEW,
             Lang.bind(this, function() {
                 this._toggleMenu();
             })

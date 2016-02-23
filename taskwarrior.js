@@ -64,21 +64,13 @@ const LABEL_TAGS = "tags: ";
  * TODO clean-up implementation
  */
 var taskwarriorCmds = {
-    delete: function (uuid) {
-        log(uuid);
-    },
-    modify: function () {
-        log("yahoo2");
-    },
+    delete: function (uuid) { return _deleteTask(uuid); },
+    modify: function (uuid) { return _modifyTask(uuid, "test"); },
     done: function (uuid) { return _taskDone(uuid); },
-    start: function () {
-        log("yahoo4");
-    },
-    stop: function () {
-        log("yahoo5");
-    },
-    add: function (text) { log(text); return _addTask(text); },
-    export: function (st) { return _export(st); },
+    start: function (uuid) { return _startTask(uuid); },
+    stop: function (uuid) { return _stopTask(uuid); },
+    add: function (text) { return _addTask(text); },
+    export: function (st) { return _exportTasks(st); },
     default: function () { log("unknown taskwarriorCmds"); }
 };
 
@@ -101,8 +93,8 @@ const Task = new Lang.Class({
 /*
  * Function to export pending task list from Taskwarrior.
  */
-function _export (st) {
-    log("_export");
+function _exportTasks (st) {
+    log("_exportTasks");
     let taskList = [];
     try {
         //[ok: Boolean, standard_output: ByteArray, standard_error: ByteArray, exit_status: Number(gint)]
@@ -131,6 +123,7 @@ function _export (st) {
 function _addTask(text) {
     log("_addTask");
     // TODO handle character escape
+    log(text);
     try {
         let [res, out, err, status] = GLib.spawn_command_line_sync(TASK_BIN + SP + TASK_ADD + SP + text);
         return res;
@@ -155,8 +148,60 @@ function _taskDone(uuid) {
 }
 
 /*
- * TODO
+ * Function to start a task.
  */
-function _modifyTask(cmd) {
+function _startTask(uuid) {
+    log("_startTask");
+    try {
+        let [res, out, err, status] = GLib.spawn_command_line_sync(TASK_BIN + SP + TASK_START + SP + uuid);
+        return res;
+    } catch (err) {
+        log(err);
+        return;
+    }
+}
 
+/*
+ * Function to stop a task.
+ */
+function _stopTask(uuid) {
+    log("_stopTask");
+    try {
+        let [res, out, err, status] = GLib.spawn_command_line_sync(TASK_BIN + SP + TASK_STOP + SP + uuid);
+        return res;
+    } catch (err) {
+        log(err);
+        return;
+    }
+}
+
+
+/*
+ * Function to modify a task.
+ * TODO handle ACK
+ */
+function _modifyTask(uuid, cmd) {
+    log("_modifyTask");
+    try {
+        let [res, out, err, status] = GLib.spawn_command_line_sync(TASK_BIN + SP + uuid + SP + TASK_MODIFY + SP + cmd);
+        return res;
+    } catch (err) {
+        log(err);
+        return;
+    }
+}
+
+/*
+ * Function to delete a task.
+ * TODO handle ACK
+ */
+function _deleteTask(uuid) {
+    log("_deleteTask");
+    try {
+        let [res, out, err, status] = GLib.spawn_command_line_sync(TASK_BIN + SP + uuid + SP + TASK_DELETE);
+        return res;
+    } catch (err) {
+        log(err);
+        return;
+    }
 }
