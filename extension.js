@@ -52,6 +52,7 @@ const TaskMain = new Lang.Class({
 
     _init: function () {
 
+        // Init gnome-shell extension icon in the taskbar
         this.parent(0.0, _("Taskwarrior Extension"));
         let nbox = new St.BoxLayout({style_class: 'panel-status-menu-box'});
         this.icon = new St.Icon({gicon: Taskwarrior.TASK_ICON, style_class: 'system-status-icon'});
@@ -59,17 +60,23 @@ const TaskMain = new Lang.Class({
         this.actor.add_child(nbox);
         this.actor.show();
 
+        // Bind menu opening to user defined keyboard shortcut
         // TODO what if not existing yet
         this._bindShortcuts();
 
         keybindingChangedId = Schema.connect('changed', Lang.bind(this, this._bindShortcuts));
 
-        if (this._versionCheck()) {
+        // Check taskwarrior is available on host and version is ok
+        if (this._verifyTaskwarriorVersion(Taskwarrior.TASKWARRIOR_COMPAT)) {
             this.actorId = this.actor.connect('button-press-event', Lang.bind(this, this._update));
+            // Get task list and build ui menu
             this._update();
         }
     },
 
+    /*
+     * Function for updating task list and build extension menu
+     */
     _update: function (cmd) {
         log("_update");
         let taskList = Taskwarrior.taskwarriorCmds['export'](Taskwarrior.TASK_STATUS_PENDING);
@@ -77,39 +84,7 @@ const TaskMain = new Lang.Class({
     },
 
     /*
-     * Function checking that taskwarrior client is installed on system and at least version 2.0.0.
-     * return: true if taskwarrior client is ok. false otherwise.
-     */
-    _versionCheck: function () {
-        try {
-            let [res, out, err, status] = GLib.spawn_command_line_sync(Taskwarrior.TASK_BIN + Taskwarrior.SP + Taskwarrior.TASK_VERSION);
-            let version = new String(out);
-            let major = version.split('.')[0];
-            if ( typeof major != 'string' || isNaN(major) || parseInt(major) < 2) {
-                log(version);
-                this._goToWebsite("Taskwarrior version outdated ! Click to Update");
-            }
-            return true;
-        } catch (err) {
-            log(err);
-            this._goToWebsite("No Taskwarrior detected ! Click to Install");
-            return false;
-        }
-    },
-
-    /*
-     * Function redirecting to Taskwarrior website download section
-     */
-    _goToWebsite: function (msg) {
-        let item = new PopupMenu.PopupMenuItem(msg);
-        this.menu.addMenuItem(item);
-        this.goToWebsiteItemId = item.connect('activate', function () {
-            Util.spawnCommandLine(OPEN_BROWSER + Taskwarrior.SP + Taskwarrior.TASK_WEBSITE);
-        });
-    },
-
-    /*
-     * Function displaying main UI.
+     * Function displaying main ui
      */
     _buildMainUi: function (list) {
         log("_buildMainUi");
@@ -121,7 +96,7 @@ const TaskMain = new Lang.Class({
         this.menu.addMenuItem(new Ui.TaskwarriorShellEntry());
         //this.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
 
-        // If nothing to display
+        // If nothing to display, just finish here
         if (typeof list === "undefined") {
             return;
         }
@@ -146,6 +121,43 @@ const TaskMain = new Lang.Class({
     },
 
     /*
+     * Check the Taskwarrior version is at least matching defined compatibility version
+     */
+    _verifyTaskwarriorVersion: function(compat_version) {
+
+        let tw_version = Taskwarrior._getVersion();
+
+        if (!Array.isArray(tw_version)) {
+            printerr(tw_version);
+            this._goToWebsite("No Taskwarrior detected ! Click to Install");
+            return false;
+        }
+
+        for (var i = 0; i < compat_version.length; ++i) {
+            if (tw_version == i) {
+                return true;
+            }
+            if (compat_version[i] > tw_version[i] ) {
+                printerr(tw_version);
+                this._goToWebsite("Taskwarrior outdated! Click to Install");
+                return false;
+            }
+        }
+        return true;
+    },
+
+    /*
+     * Function redirecting to Taskwarrior website download section
+     */
+    _goToWebsite: function (msg) {
+        let item = new PopupMenu.PopupMenuItem(msg);
+        this.menu.addMenuItem(item);
+        this.goToWebsiteItemId = item.connect('activate', function () {
+            Util.spawnCommandLine(OPEN_BROWSER + Taskwarrior.SP + Taskwarrior.TASK_WEBSITE);
+        });
+    },
+
+    /*
      * Keybindings to open or close the menu - key can be set in the extension pref menu
      */
     _bindShortcuts: function() {
@@ -158,9 +170,9 @@ const TaskMain = new Lang.Class({
             Prefs.TOGGLE_MENU,
             Schema,
             Meta.KeyBindingFlags.NONE,
-            Shell.KeyBindingMode.NORMAL |
-            Shell.KeyBindingMode.MESSAGE_TRAY |
-            Shell.KeyBindingMode.OVERVIEW,
+            Shell.ActionMode.NORMAL |
+            Shell.ActionMode.MESSAGE_TRAY |
+            Shell.ActionMode.OVERVIEW,
             Lang.bind(this, function() {
                 this._toggleMenu();
             })

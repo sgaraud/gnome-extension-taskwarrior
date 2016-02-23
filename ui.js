@@ -36,6 +36,7 @@ const ExtensionUtils = imports.misc.extensionUtils;
 const Me = ExtensionUtils.getCurrentExtension();
 const Convenience = Me.imports.convenience;
 const Taskwarrior = Me.imports.taskwarrior;
+const Extension = Me.imports.extension;
 
 /*
  * Class for widget handling add new task field
@@ -208,7 +209,9 @@ const Button = new Lang.Class({
 
     _onClicked: function() {
         let action = Taskwarrior.taskwarriorCmds.hasOwnProperty(this.actor.get_label()) ? this.actor.get_label() : "default";
-        Taskwarrior.taskwarriorCmds[action](this.taskid);
+        let status = Taskwarrior.taskwarriorCmds[action](this.taskid);
+        log(status);
+        // TODO in case of status != 0 handle popup giving action in error
     },
 
     toggle: function() {

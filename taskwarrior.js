@@ -36,6 +36,8 @@ const ExtensionUtils = imports.misc.extensionUtils;
 const Me = ExtensionUtils.getCurrentExtension();
 const Convenience = Me.imports.convenience;
 
+const TASKWARRIOR_COMPAT = [2,4,0];
+
 const SP = " ";
 const TASK_ICON = Gio.icon_new_for_string(Me.path + "/icons/Taskwarrior_icon.png");
 const TASK_WEBSITE = 'https://taskwarrior.org/download/';
@@ -49,6 +51,8 @@ const TASK_START = 'start';
 const TASK_STOP = 'stop';
 const TASK_VERSION = '--version';
 const TASK_STATUS_PENDING = 'status:pending';
+const TASK_NO_CONFIRM = 'rc.confirmation:on';
+const TASK_ERROR = 1;
 
 const LABEL_EMPTY = "    ";
 const LABEL_PROJECT = "project: ";
@@ -91,6 +95,14 @@ const Task = new Lang.Class({
 });
 
 /*
+ * Taskwarrior command line syntax
+ * task | filter | command | modifications | miscellaneous
+ *
+ *
+ */
+
+
+/*
  * Function to export pending task list from Taskwarrior.
  */
 function _exportTasks (st) {
@@ -99,21 +111,20 @@ function _exportTasks (st) {
     try {
         //[ok: Boolean, standard_output: ByteArray, standard_error: ByteArray, exit_status: Number(gint)]
         let [res, out, err, status] = GLib.spawn_command_line_sync(TASK_BIN + SP + TASK_EXPORT + SP + st);
-        let lines = (new String(out)).split('\n');
+        let lines = out.toString().split('\n');
 
         for (let i = 0; i < lines.length; i++) {
             // comma terminated in old taskwarrior versions
             lines[i] = lines[i].replace(/,\s*$/, '');
             if (lines[i].trim()) {
                 let json = JSON.parse(lines[i]);
-                let task = new Task(json);
-                taskList[i] = task;
+                taskList[i] = new Task(json);
             }
         }
         return taskList;
     } catch (err) {
-        log(err);
-        return;
+        printerr(err);
+        return TASK_ERROR;
     }
 }
 
@@ -126,10 +137,10 @@ function _addTask(text) {
     log(text);
     try {
         let [res, out, err, status] = GLib.spawn_command_line_sync(TASK_BIN + SP + TASK_ADD + SP + text);
-        return res;
+        return status;
     } catch (err) {
-        log(err);
-        return;
+        printerr(err);
+        return TASK_ERROR;
     }
 }
 
@@ -140,10 +151,10 @@ function _taskDone(uuid) {
     log("_taskDone");
     try {
         let [res, out, err, status] = GLib.spawn_command_line_sync(TASK_BIN + SP + uuid + SP + TASK_DONE);
-        return res;
+        return status;
     } catch (err) {
-        log(err);
-        return;
+        printerr(err);
+        return TASK_ERROR;
     }
 }
 
@@ -154,10 +165,10 @@ function _startTask(uuid) {
     log("_startTask");
     try {
         let [res, out, err, status] = GLib.spawn_command_line_sync(TASK_BIN + SP + TASK_START + SP + uuid);
-        return res;
+        return status;
     } catch (err) {
-        log(err);
-        return;
+        printerr(err);
+        return TASK_ERROR;
     }
 }
 
@@ -168,40 +179,53 @@ function _stopTask(uuid) {
     log("_stopTask");
     try {
         let [res, out, err, status] = GLib.spawn_command_line_sync(TASK_BIN + SP + TASK_STOP + SP + uuid);
-        return res;
+        return status;
     } catch (err) {
-        log(err);
-        return;
+        printerr(err);
+        return TASK_ERROR;
     }
 }
 
 
 /*
  * Function to modify a task.
- * TODO handle ACK
  */
 function _modifyTask(uuid, cmd) {
     log("_modifyTask");
     try {
-        let [res, out, err, status] = GLib.spawn_command_line_sync(TASK_BIN + SP + uuid + SP + TASK_MODIFY + SP + cmd);
-        return res;
+        let [res, out, err, status] = GLib.spawn_command_line_sync(TASK_BIN + SP + TASK_NO_CONFIRM + SP + uuid
+            + SP + TASK_MODIFY + SP + cmd);
+        return status;
     } catch (err) {
-        log(err);
-        return;
+        printerr(err);
+        return TASK_ERROR;
     }
 }
 
 /*
  * Function to delete a task.
- * TODO handle ACK
  */
 function _deleteTask(uuid) {
     log("_deleteTask");
     try {
-        let [res, out, err, status] = GLib.spawn_command_line_sync(TASK_BIN + SP + uuid + SP + TASK_DELETE);
-        return res;
+        let [res, out, err, status] = GLib.spawn_command_line_sync(TASK_BIN + SP + TASK_NO_CONFIRM + SP + uuid
+            + SP + TASK_DELETE);
+        return status;
     } catch (err) {
-        log(err);
-        return;
+        printerr(err);
+        return TASK_ERROR;
+    }
+}
+
+/*
+ * Function to get taskwarrior version.
+ */
+function _getVersion() {
+    try {
+        let [res, out, err, status] = GLib.spawn_command_line_sync(TASK_BIN + SP + TASK_VERSION);
+        return out.toString().split('.');
+    } catch (err) {
+        printerr(err);
+        return TASK_ERROR;
     }
 }
