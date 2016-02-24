@@ -68,25 +68,25 @@ const TaskMain = new Lang.Class({
 
         // Check taskwarrior is available on host and version is ok
         if (this._verifyTaskwarriorVersion(Taskwarrior.TASKWARRIOR_COMPAT)) {
-            this.actorId = this.actor.connect('button-press-event', Lang.bind(this, this._update));
+            this.actorId = this.actor.connect('button-press-event', Lang.bind(this, this._mainUi));
             // Get task list and build ui menu
-            this._update();
+            this._mainUi();
+            // TODO Listen for custom event published when required to rebuild UI
+
         }
     },
 
-    /*
-     * Function for updating task list and build extension menu
-     */
-    _update: function (cmd) {
-        log("_update");
-        let taskList = Taskwarrior.taskwarriorCmds['export'](Taskwarrior.TASK_STATUS_PENDING);
-        this._buildMainUi(taskList);
+    _bam: function () {
+      log("BAMMMMM");
     },
 
     /*
      * Function displaying main ui
      */
-    _buildMainUi: function (list) {
+    _mainUi: function () {
+
+        let taskList = Taskwarrior.taskwarriorCmds['export'](Taskwarrior.TASK_STATUS_PENDING);
+
         log("_buildMainUi");
 
         // Rebuild completely the menu with updated data
@@ -97,12 +97,12 @@ const TaskMain = new Lang.Class({
         //this.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
 
         // If nothing to display, just finish here
-        if (typeof list === "undefined") {
+        if (typeof taskList === "undefined") {
             return;
         }
 
         // Lists the current tasks as in the taskList struct
-        for (let task of list) {
+        for (let task of taskList) {
 
             // Sub menu with buttons delete, modify
             // Show extra tasks infos project, urgency, date

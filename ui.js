@@ -70,8 +70,10 @@ const TaskwarriorShellEntry = new Lang.Class({
     },
 
     cmd: function(text) {
-        // TODO handle return value for error
-        Taskwarrior.taskwarriorCmds['add'](text);
+        let status = Taskwarrior.taskwarriorCmds['add'](text);
+        // TODO notify main loop for refreshing UI
+        this.emit('interface-click', status);
+        _userNotification(status, 'add');
         // Reset type command
         this._entry.text = '';
     },
@@ -126,24 +128,23 @@ const TaskwarriorMenuAdvancedItem1 = new Lang.Class({
     _init: function(task) {
         this.parent();
 
-        this.label_project = new St.Label({ text: Taskwarrior.LABEL_PROJECT + Taskwarrior.LABEL_EMPTY });
         this.label_priority = new St.Label({ text: Taskwarrior.LABEL_PRIORITY + Taskwarrior.LABEL_EMPTY });
-        this.label_entered = new St.Label({ text: Taskwarrior.LABEL_ENTERED +Taskwarrior.LABEL_EMPTY });
+        this.label_project = new St.Label({ text: Taskwarrior.LABEL_PROJECT + Taskwarrior.LABEL_EMPTY });
+        this.label_tags = new St.Label({ text: Taskwarrior.LABEL_TAGS + Taskwarrior.LABEL_EMPTY });
 
-        if (task.project != null) {
-            this.label_project = new St.Label({ text: Taskwarrior.LABEL_PROJECT + task.project });
-        }
         if (task.priority != null) {
             this.label_priority = new St.Label({ text: Taskwarrior.LABEL_PRIORITY + task.priority });
         }
-
-        if (task.entry != null) {
-            this.label_entered = new St.Label({ text: Taskwarrior.LABEL_ENTERED + Taskwarrior._checkDate(task.entry) });
+        if (task.project != null) {
+            this.label_project = new St.Label({ text: Taskwarrior.LABEL_PROJECT + task.project });
+        }
+        if (task.tags != null) {
+            this.label_tags = new St.Label({ text: Taskwarrior.LABEL_TAGS + task.tags });
         }
 
-        this.actor.add_child(this.label_project);
         this.actor.add_child(this.label_priority);
-        this.actor.add_child(this.label_entered);
+        this.actor.add_child(this.label_project);
+        this.actor.add_child(this.label_tags);
         //this.actor.label_actor = this.label_project ;
 
         let expander = new St.Bin({ style_class: 'popup-menu-item-expander' });
@@ -170,17 +171,17 @@ const TaskwarriorMenuAdvancedItem2 = new Lang.Class({
         this.parent();
 
         this.label_due = new St.Label({ text: Taskwarrior.LABEL_DUE + Taskwarrior.LABEL_EMPTY });
-        this.label_tags = new St.Label({ text: Taskwarrior.LABEL_TAGS + Taskwarrior.LABEL_EMPTY });
+        this.label_entered = new St.Label({ text: Taskwarrior.LABEL_ENTERED +Taskwarrior.LABEL_EMPTY });
 
         if (task.due != null) {
             this.label_due = new St.Label({ text: Taskwarrior.LABEL_DUE + Taskwarrior._checkDate(task.due) });
         }
-        if (task.tags != null) {
-            this.label_tags = new St.Label({ text: Taskwarrior.LABEL_TAGS + task.tags });
+        if (task.entry != null) {
+            this.label_entered = new St.Label({ text: Taskwarrior.LABEL_ENTERED + Taskwarrior._checkDate(task.entry) });
         }
 
         this.actor.add_child(this.label_due);
-        this.actor.add_child(this.label_tags);
+        this.actor.add_child(this.label_entered);
 
         let expander = new St.Bin({ style_class: 'popup-menu-item-expander' });
         this.actor.add(expander, { expand: true });
@@ -220,32 +221,20 @@ const Button = new Lang.Class({
     _onClicked: function() {
         let action = Taskwarrior.taskwarriorCmds.hasOwnProperty(this.actor.get_label()) ? this.actor.get_label() : "default";
         let status = Taskwarrior.taskwarriorCmds[action](this.taskid);
-        log(status);
-
-        // TODO In case of status != 0, display popup to warn user command failed
-            this._userNotification(this.taskid, action);
-   },
-
-    _userNotification: function(id, action) {
-
-       /** GNOME 3.6: sending a notification to the user.
- * In GNOME 3.6 one can provide the Source and Notification icons by passing in
- * the icon name to the Source constructor.
- * Much simpler than GNOME 3.2 or GNOME 3.4.
- */
-// 1. Make a source
-let source = new MessageTray.Source("source title", 'avatar-default');
-// 2. Make a notification
-let notification = new MessageTray.Notification(source,
-                                                "notification title",
-                                                "notification message");
-// 3. Add the source to the message tray
-Main.messageTray.add(source);
-// 4. notify!
-source.notify(notification);
-        
-
-    }
-
+        // TODO notify main loop for refreshing UI
+        _userNotification(status, action);
+   }
 
 });
+
+/*
+ * Notify user of action performed
+ */
+function _userNotification(status, action) {
+    let source = new MessageTray.Source("taskwarrior", 'avatar-default');
+    let notif_title = "command " + action;
+    let notif_msg = !status ? "success" : "failed";
+    let notification = new MessageTray.Notification(source, notif_title, notif_msg);
+    Main.messageTray.add(source);
+    source.notify(notification);
+}

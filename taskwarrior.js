@@ -54,7 +54,7 @@ const TASK_STATUS_PENDING = 'status:pending';
 const TASK_NO_CONFIRM = 'rc.confirmation:on';
 const TASK_ERROR = 1;
 
-const LABEL_EMPTY = "    ";
+const LABEL_EMPTY = "___";
 const LABEL_PROJECT = "project: ";
 const LABEL_PRIORITY = "priority: ";
 //const LABEL_URGENCY = "urgency: ";
