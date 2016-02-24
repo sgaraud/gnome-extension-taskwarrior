@@ -1,9 +1,37 @@
 
 .task-label {
-    font-size: 36px;
-    font-weight: bold;
-    color: #ffffff;
-    background-color: rgba(10,10,10,0.7);
-    border-radius: 5px;
-    padding: .5em;
+   font-size: 36px;
+   font-weight: bold;
+   color: #ffffff;
+   background-color: rgba(10,10,10,0.7);
+   border-radius: 5px;
+   padding: .5em;
 }
+
+/* Entries */
+StEntry {
+   border-radius: 0px;
+   padding: 4px;
+   border-width: 1px;
+   color: #BFBFBF;
+   background-color: #292929;
+   border-color: #1c1f1f;
+   box-shadow: inset 0 2px 4px rgba(37, 42, 50, 0.4);
+   selection-background-color: #3C4552;
+selected-color: #ffffff; }
+StEntry:focus {
+   box-shadow: inset 0 2px 4px rgba(37, 42, 50, 0.4);
+border-color: rgba(154, 154, 142, 0.5); }
+StEntry:insensitive {
+   color: #949796;
+   border-color: #333636;
+box-shadow: none; }
+StEntry StIcon.capslock-warning {
+   icon-size: 16px;
+   warning-color: #f57900;
+padding: 0 4px; }
+
+/* Popovers/Menus */
+/* Buttons */
+/* TOP BAR */
+/*#panel */ 
