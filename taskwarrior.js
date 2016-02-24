@@ -36,7 +36,7 @@ const ExtensionUtils = imports.misc.extensionUtils;
 const Me = ExtensionUtils.getCurrentExtension();
 const Convenience = Me.imports.convenience;
 
-const TASKWARRIOR_COMPAT = [2,4,0];
+const TASKWARRIOR_COMPAT = [2,3,0];
 
 const SP = " ";
 const TASK_ICON = Gio.icon_new_for_string(Me.path + "/icons/Taskwarrior_icon.png");
@@ -228,4 +228,22 @@ function _getVersion() {
         printerr(err);
         return TASK_ERROR;
     }
+}
+
+
+function _checkDate(str) {
+    var y = str.substr(0,4),
+        m = str.substr(4,2) - 1,
+        d = str.substr(6,2);
+
+    log(str);
+
+    /*str = [str.slice(0, 13), ':', str.slice(13)].join('');
+    str = [str.slice(0, 11), ':', str.slice(11)].join('');
+    str = [str.slice(0, 6), '-', str.slice(6)].join('');
+    str = [str.slice(0, 4), '-', str.slice(4)].join('');*/
+
+    var D = new Date(y,m,d);
+    return (D.getFullYear() == y && D.getMonth() == m && D.getDate() == d) ? D.toString().split(" ")[2]
+       + ' ' + D.toString().split(" ")[1] + ' ' + D.toString().split(" ")[3] : 'invalid date';
 }

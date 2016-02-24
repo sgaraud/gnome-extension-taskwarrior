@@ -31,6 +31,7 @@ const PanelMenu = imports.ui.panelMenu;
 const Atk = imports.gi.Atk;
 const Clutter = imports.gi.Clutter;
 const Tweener = imports.ui.tweener;
+const MessageTray = imports.ui.messageTray;
 
 const ExtensionUtils = imports.misc.extensionUtils;
 const Me = ExtensionUtils.getCurrentExtension();
@@ -137,7 +138,7 @@ const TaskwarriorMenuAdvancedItem1 = new Lang.Class({
         }
 
         if (task.entry != null) {
-            this.label_entered = new St.Label({ text: Taskwarrior.LABEL_ENTERED + task.entry });
+            this.label_entered = new St.Label({ text: Taskwarrior.LABEL_ENTERED + Taskwarrior._checkDate(task.entry) });
         }
 
         this.actor.add_child(this.label_project);
@@ -172,7 +173,7 @@ const TaskwarriorMenuAdvancedItem2 = new Lang.Class({
         this.label_tags = new St.Label({ text: Taskwarrior.LABEL_TAGS + Taskwarrior.LABEL_EMPTY });
 
         if (task.due != null) {
-            this.label_due = new St.Label({ text: Taskwarrior.LABEL_DUE + task.due });
+            this.label_due = new St.Label({ text: Taskwarrior.LABEL_DUE + Taskwarrior._checkDate(task.due) });
         }
         if (task.tags != null) {
             this.label_tags = new St.Label({ text: Taskwarrior.LABEL_TAGS + task.tags });
@@ -194,6 +195,14 @@ const TaskwarriorMenuAdvancedItem2 = new Lang.Class({
 
 });
 
+
+/*
+ * TODO create the various needed buttons variations
+ * TODO simple button done + notification
+ * TODO button start/stop switch + notification
+ * TODO button modify + pre filled edit window + notification
+ * TODO button delete + confirm + notification
+ */
 const Button = new Lang.Class({
     Name: 'Button',
 
@@ -201,6 +210,7 @@ const Button = new Lang.Class({
         this.taskid = uuid;
         this.actor = new St.Button({ reactive: true,
             track_hover: true,
+            style_class: 'stylesheet',
             label: text });
 
         this.actor.get_child().single_line_mode = true;
@@ -211,10 +221,31 @@ const Button = new Lang.Class({
         let action = Taskwarrior.taskwarriorCmds.hasOwnProperty(this.actor.get_label()) ? this.actor.get_label() : "default";
         let status = Taskwarrior.taskwarriorCmds[action](this.taskid);
         log(status);
-        // TODO in case of status != 0 handle popup giving action in error
-    },
 
-    toggle: function() {
+        // TODO In case of status != 0, display popup to warn user command failed
+            this._userNotification(this.taskid, action);
+   },
+
+    _userNotification: function(id, action) {
+
+       /** GNOME 3.6: sending a notification to the user.
+ * In GNOME 3.6 one can provide the Source and Notification icons by passing in
+ * the icon name to the Source constructor.
+ * Much simpler than GNOME 3.2 or GNOME 3.4.
+ */
+// 1. Make a source
+let source = new MessageTray.Source("source title", 'avatar-default');
+// 2. Make a notification
+let notification = new MessageTray.Notification(source,
+                                                "notification title",
+                                                "notification message");
+// 3. Add the source to the message tray
+Main.messageTray.add(source);
+// 4. notify!
+source.notify(notification);
+        
 
     }
+
+
 });
