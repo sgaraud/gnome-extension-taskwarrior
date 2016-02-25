@@ -96,21 +96,24 @@ const TaskwarriorMenuItem = new Lang.Class({
     Name: 'Taskwarrior.MenuItem',
     Extends: PopupMenu.PopupSubMenuMenuItem,
 
-    _init: function(params, uuid) {
-        this.parent(params, uuid);
+    _init: function(task) {
+        this.parent(task.description);
 
         // Remove some original widget parts for rebuilding with the extra buttons
         this._triangleBin.remove_child(this._triangle);
         this.actor.remove_child(this._triangleBin);
 
-        this._button_done = new Button(Taskwarrior.TASK_DONE, uuid);
+        this._button_done = new TaskButton(Taskwarrior.TASK_DONE, task.uuid, 'task-button-done');
         this.actor.add_child(this._button_done.actor);
 
-        this._button_start = new Button(Taskwarrior.TASK_START, uuid);
-        this.actor.add_child(this._button_start.actor);
-
-        this._button_stop = new Button(Taskwarrior.TASK_STOP, uuid);
-        this.actor.add_child(this._button_stop.actor);
+        if (typeof task.start != 'undefined') {
+            this._button_stop = new TaskButton(Taskwarrior.TASK_STOP, task.uuid, 'task-button-danger');
+            this.actor.add_child(this._button_stop.actor);
+        }
+        else {
+            this._button_start = new TaskButton(Taskwarrior.TASK_START, task.uuid, 'task-button');
+            this.actor.add_child(this._button_start.actor);
+        }
 
         this._triangleBin.add_child(this._triangle);
         this.actor.add_child(this._triangleBin);
@@ -150,7 +153,7 @@ const TaskwarriorMenuAdvancedItem1 = new Lang.Class({
         let expander = new St.Bin({ style_class: 'popup-menu-item-expander' });
         this.actor.add(expander, { expand: true });
 
-        this._button_modify = new Button(Taskwarrior.TASK_MODIFY, task.uuid);
+        this._button_modify = new TaskButton(Taskwarrior.TASK_MODIFY, task.uuid, 'task-button');
         this.actor.add_child(this._button_modify.actor);
 
     },
@@ -186,7 +189,7 @@ const TaskwarriorMenuAdvancedItem2 = new Lang.Class({
         let expander = new St.Bin({ style_class: 'popup-menu-item-expander' });
         this.actor.add(expander, { expand: true });
 
-        this._button_del = new Button(Taskwarrior.TASK_DELETE, task.uuid);
+        this._button_del = new TaskButton(Taskwarrior.TASK_DELETE, task.uuid, 'task-button-danger');
         this.actor.add_child(this._button_del.actor);
 
     },
@@ -196,7 +199,6 @@ const TaskwarriorMenuAdvancedItem2 = new Lang.Class({
 
 });
 
-
 /*
  * TODO create the various needed buttons variations
  * TODO simple button done + notification
@@ -204,14 +206,14 @@ const TaskwarriorMenuAdvancedItem2 = new Lang.Class({
  * TODO button modify + pre filled edit window + notification
  * TODO button delete + confirm + notification
  */
-const Button = new Lang.Class({
-    Name: 'Button',
+const TaskButton = new Lang.Class({
+    Name: 'Task.Button',
 
-    _init: function(text, uuid) {
+    _init: function(text, uuid,style) {
         this.taskid = uuid;
         this.actor = new St.Button({ reactive: true,
             track_hover: true,
-            style_class: 'button',
+            style_class: style,
             label: text });
 
         this.actor.get_child().single_line_mode = true;

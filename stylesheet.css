@@ -2,8 +2,7 @@
 .task-label {
    font-size: 36px;
    font-weight: bold;
-   color: #ffffff;
-   background-color: rgba(10,10,10,0.7);
+   color: #fff;
    border-radius: 5px;
    padding: .5em;
 }
@@ -11,55 +10,105 @@
 /* Task entries */
 .task-entry {
    border-width: 1px;
-   border-color: #b6d296;
+   border-color: #3c8cdd;
 }
 
 /* Generic buttons */
-.button {
+.task-button {
+    position: relative;
     display: inline-block;
-    padding: 0.3em 1em;
-    margin: 0;
-    text-decoration: none;
-    font: 11px/normal sans-serif;
+    padding: 0 10px;
+    font-size: 11px;
+    font-weight: bold;
     color: #333;
+    white-space: nowrap;
+    vertical-align: middle;
+    cursor: pointer;
+    margin: 0;
+    overflow: visible;
+    text-decoration: none;
     outline: none;
-    background-color: #ececec;
-    border-radius: 0.3em;
-    border-color: #000;
+    border: 1px solid #d5d5d5;
+    background-color: #eee;
+    border-radius: 3px;
 }
 
-.button:hover,
-.button:focus {
-    border-color: #3072b3;
-    border-bottom-color: #2a65a0;
-    color: #fff;
-    background-color: #3C8DDE;
+.task-button:hover,
+.task-button:focus {
+    color: #eee;
+    border-color: #51a7e8;
+    background-color: #3c8cdd;
 }
 
-.button:active,
-.button.active {
-    color: #fff;
-    border-color: #2a65a0;
-    border-bottom-color: #3884CF;
-    background-color: #3072b3;
+.task-button:active,
+.task-button.active {
+    color: #51a7e8;
+    border-color: #d5d5d5;
+    background-color: #eee;
 }
 
 /* Danger buttons */
-.button.danger {
-      color: #900;
+.task-button-danger {
+    position: relative;
+    display: inline-block;
+    padding: 0 10px;
+    font-size: 11px;
+    font-weight: bold;
+    white-space: nowrap;
+    vertical-align: middle;
+    cursor: pointer;
+    margin: 0;
+    overflow: visible;
+    text-decoration: none;
+    outline: none;
+    border: 1px solid #d5d5d5;
+    background-color: #eee;
+    border-radius: 3px;
+    color: #900
    }
-.button.danger:hover,
-.button.danger:focus,
-.button.danger:active {
-    background-color: #b33630;
+.task-button-danger:hover,
+.task-button-danger:focus {
+    color: #eee;
     border-color: #cd504a;
-    color: #b33630;
+    background-color: #b33630
  }
 
-.button.danger:active,
-.button.danger.active {
-    border-color: #a0302a;
-    border-bottom-color: #bf4843;
+.task-button-danger:active,
+.task-button-danger.active {
     color: #b33630;
-    background-color: #fff;
+    border-color: #a0302a;
+    background-color: #eee
+}
+
+.task-button-done {
+    position: relative;
+    display: inline-block;
+    padding: 0 10px;
+    font-size: 11px;
+    font-weight: bold;
+    color: #eee;
+    white-space: nowrap;
+    vertical-align: middle;
+    cursor: pointer;
+    margin: 0;
+    overflow: visible;
+    text-decoration: none;
+    outline: none;
+    border: 1px solid #5ca941;
+    background-color: #60b044;
+    border-radius: 3px
+}
+
+.task-button-done:hover,
+.task-button-done:focus {
+    color: #eee;
+    border-color: #4a993e;
+    background-color: #418737
+}
+
+.task-button-done:active,
+.task-button-done.active {
+    color: #eee;
+    border-color: #569e3d;
+    background-color: #4a993e
 }

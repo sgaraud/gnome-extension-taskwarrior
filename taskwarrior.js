@@ -87,6 +87,8 @@ const Task = new Lang.Class({
         this.entry = task.entry;
         this.modified = task.modified;
         this.due = task.due;
+        this.start = task.start;
+        this.stop = task.stop;
         this.urgency = task.urgency;
         this.priority = task.priority;
         this.project = task.project;
@@ -164,7 +166,7 @@ function _taskDone(uuid) {
 function _startTask(uuid) {
     log("_startTask");
     try {
-        let [res, out, err, status] = GLib.spawn_command_line_sync(TASK_BIN + SP + TASK_START + SP + uuid);
+        let [res, out, err, status] = GLib.spawn_command_line_sync(TASK_BIN + SP + uuid + SP + TASK_START);
         return status;
     } catch (err) {
         printerr(err);
@@ -178,7 +180,7 @@ function _startTask(uuid) {
 function _stopTask(uuid) {
     log("_stopTask");
     try {
-        let [res, out, err, status] = GLib.spawn_command_line_sync(TASK_BIN + SP + TASK_STOP + SP + uuid);
+        let [res, out, err, status] = GLib.spawn_command_line_sync(TASK_BIN + SP + uuid + SP + TASK_STOP);
         return status;
     } catch (err) {
         printerr(err);
@@ -235,8 +237,6 @@ function _checkDate(str) {
     var y = str.substr(0,4),
         m = str.substr(4,2) - 1,
         d = str.substr(6,2);
-
-    log(str);
 
     /*str = [str.slice(0, 13), ':', str.slice(13)].join('');
     str = [str.slice(0, 11), ':', str.slice(11)].join('');
