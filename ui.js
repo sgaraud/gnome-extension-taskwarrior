@@ -49,7 +49,7 @@ const TaskwarriorShellEntry = new Lang.Class({
     _init: function(params) {
         this.parent(params);
 
-        this._entry = new St.Entry({ can_focus: true , x_expand: true , hint_text: _("Add task ...") });
+        this._entry = new St.Entry({ can_focus: true, style_class: 'task-entry', x_expand: true , hint_text: _("Add task ...") });
         ShellEntry.addContextMenu(this._entry);
         this.actor.add_child(this._entry);
 
@@ -211,7 +211,7 @@ const Button = new Lang.Class({
         this.taskid = uuid;
         this.actor = new St.Button({ reactive: true,
             track_hover: true,
-            style_class: 'stylesheet',
+            style_class: 'button',
             label: text });
 
         this.actor.get_child().single_line_mode = true;
