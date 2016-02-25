@@ -97,7 +97,7 @@ const TaskMain = new Lang.Class({
         //this.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
 
         // If nothing to display, just finish here
-        if (typeof taskList === "undefined") {
+        if (typeof taskList === 'undefined') {
             return;
         }
 
@@ -106,12 +106,11 @@ const TaskMain = new Lang.Class({
 
             // Sub menu with buttons delete, modify
             // Show extra tasks infos project, urgency, date
-            // TODO refactor in only one class type
+            // TODO rework sub menu list
             let itemSub1 = new Ui.TaskwarriorMenuAdvancedItem1(task);
             let itemSub2 = new Ui.TaskwarriorMenuAdvancedItem2(task);
 
             // Show task description + button when task is done + arrow to expand with extra options
-            // TODO just give task instead of double params
             let item = new Ui.TaskwarriorMenuItem(task);
 
             item.menu.addMenuItem(itemSub1);

@@ -131,24 +131,26 @@ const TaskwarriorMenuAdvancedItem1 = new Lang.Class({
     _init: function(task) {
         this.parent();
 
-        this.label_priority = new St.Label({ text: Taskwarrior.LABEL_PRIORITY + Taskwarrior.LABEL_EMPTY });
-        this.label_project = new St.Label({ text: Taskwarrior.LABEL_PROJECT + Taskwarrior.LABEL_EMPTY });
-        this.label_tags = new St.Label({ text: Taskwarrior.LABEL_TAGS + Taskwarrior.LABEL_EMPTY });
-
-        if (task.priority != null) {
-            this.label_priority = new St.Label({ text: Taskwarrior.LABEL_PRIORITY + task.priority });
-        }
-        if (task.project != null) {
-            this.label_project = new St.Label({ text: Taskwarrior.LABEL_PROJECT + task.project });
-        }
-        if (task.tags != null) {
-            this.label_tags = new St.Label({ text: Taskwarrior.LABEL_TAGS + task.tags });
-        }
-
+        this.label_priority = new St.Label({ text: Taskwarrior.LABEL_PRIORITY, style_class: 'task-label' });
         this.actor.add_child(this.label_priority);
+        if (typeof task.priority != 'undefined') {
+            this.label_priority_value = new St.Label({ text: task.priority });
+            this.actor.add_child(this.label_priority_value);
+        }
+
+        this.label_project = new St.Label({ text: Taskwarrior.LABEL_PROJECT, style_class: 'task-label' });
         this.actor.add_child(this.label_project);
+        if (typeof task.project != 'undefined') {
+            this.label_project_value = new St.Label({ text: task.project });
+            this.actor.add_child(this.label_project_value);
+        }
+
+        this.label_tags = new St.Label({ text: Taskwarrior.LABEL_TAGS, style_class: 'task-label' });
         this.actor.add_child(this.label_tags);
-        //this.actor.label_actor = this.label_project ;
+        if (typeof task.tags != 'undefined') {
+            this.label_tags_value = new St.Label({ text: task.tags.toString() });
+            this.actor.add_child(this.label_tags_value);
+        }
 
         let expander = new St.Bin({ style_class: 'popup-menu-item-expander' });
         this.actor.add(expander, { expand: true });
@@ -173,18 +175,24 @@ const TaskwarriorMenuAdvancedItem2 = new Lang.Class({
     _init: function(task) {
         this.parent();
 
-        this.label_due = new St.Label({ text: Taskwarrior.LABEL_DUE + Taskwarrior.LABEL_EMPTY });
-        this.label_entered = new St.Label({ text: Taskwarrior.LABEL_ENTERED +Taskwarrior.LABEL_EMPTY });
-
-        if (task.due != null) {
-            this.label_due = new St.Label({ text: Taskwarrior.LABEL_DUE + Taskwarrior._checkDate(task.due) });
-        }
-        if (task.entry != null) {
-            this.label_entered = new St.Label({ text: Taskwarrior.LABEL_ENTERED + Taskwarrior._checkDate(task.entry) });
-        }
-
+        this.label_due = new St.Label({ text: Taskwarrior.LABEL_DUE, style_class: 'task-label' });
         this.actor.add_child(this.label_due);
+        if (typeof task.due != 'undefined') {
+            this.label_due_value = new St.Label({ text: Taskwarrior._checkDate(task.due) });
+            this.actor.add_child(this.label_due_value);
+        }
+        if (typeof task.start != 'undefined') {
+            this.label_start = new St.Label({ text: Taskwarrior.LABEL_START, style_class: 'task-label' });
+            this.actor.add_child(this.label_start);
+            this.label_start_value = new St.Label({ text: Taskwarrior._checkDate(task.start) });
+            this.actor.add_child(this.label_start_value);
+        }
+        this.label_entered = new St.Label({ text: Taskwarrior.LABEL_ENTERED, style_class: 'task-label' });
         this.actor.add_child(this.label_entered);
+        if (typeof task.entry != 'undefined') {
+            this.label_entered_value = new St.Label({ text: Taskwarrior._checkDate(task.entry) });
+            this.actor.add_child(this.label_entered_value);
+        }
 
         let expander = new St.Bin({ style_class: 'popup-menu-item-expander' });
         this.actor.add(expander, { expand: true });
@@ -200,9 +208,6 @@ const TaskwarriorMenuAdvancedItem2 = new Lang.Class({
 });
 
 /*
- * TODO create the various needed buttons variations
- * TODO simple button done + notification
- * TODO button start/stop switch + notification
  * TODO button modify + pre filled edit window + notification
  * TODO button delete + confirm + notification
  */
