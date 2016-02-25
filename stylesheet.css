@@ -1,4 +1,4 @@
-
+/* Labels format */
 .task-label {
    font-size: 36px;
    font-weight: bold;
@@ -8,30 +8,58 @@
    padding: .5em;
 }
 
-/* Entries */
-StEntry {
-   border-radius: 0px;
-   padding: 4px;
+/* Task entries */
+.task-entry {
    border-width: 1px;
-   color: #BFBFBF;
-   background-color: #292929;
-   border-color: #1c1f1f;
-   box-shadow: inset 0 2px 4px rgba(37, 42, 50, 0.4);
-   selection-background-color: #3C4552;
-selected-color: #ffffff; }
-StEntry:focus {
-   box-shadow: inset 0 2px 4px rgba(37, 42, 50, 0.4);
-border-color: rgba(154, 154, 142, 0.5); }
-StEntry:insensitive {
-   color: #949796;
-   border-color: #333636;
-box-shadow: none; }
-StEntry StIcon.capslock-warning {
-   icon-size: 16px;
-   warning-color: #f57900;
-padding: 0 4px; }
+   border-color: #b6d296;
+}
 
-/* Popovers/Menus */
-/* Buttons */
-/* TOP BAR */
-/*#panel */ 
+/* Generic buttons */
+.button {
+    display: inline-block;
+    padding: 0.3em 1em;
+    margin: 0;
+    text-decoration: none;
+    font: 11px/normal sans-serif;
+    color: #333;
+    outline: none;
+    background-color: #ececec;
+    border-radius: 0.3em;
+    border-color: #000;
+}
+
+.button:hover,
+.button:focus {
+    border-color: #3072b3;
+    border-bottom-color: #2a65a0;
+    color: #fff;
+    background-color: #3C8DDE;
+}
+
+.button:active,
+.button.active {
+    color: #fff;
+    border-color: #2a65a0;
+    border-bottom-color: #3884CF;
+    background-color: #3072b3;
+}
+
+/* Danger buttons */
+.button.danger {
+      color: #900;
+   }
+.button.danger:hover,
+.button.danger:focus,
+.button.danger:active {
+    background-color: #b33630;
+    border-color: #cd504a;
+    color: #b33630;
+ }
+
+.button.danger:active,
+.button.danger.active {
+    border-color: #a0302a;
+    border-bottom-color: #bf4843;
+    color: #b33630;
+    background-color: #fff;
+}
