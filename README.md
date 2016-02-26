@@ -4,8 +4,8 @@ This GNOME shell extension is enabling access to [Taskwarrior](https://taskwarri
 
 ### Dependencies
 
-Taskwarrior V2.0.0 or higher :godmode: :exclamation: 
-make sure [Taskwarrior](https://taskwarrior.org/download/) is installed on your system.
+Taskwarrior V2.3.0 or higher :exclamation: 
+Make sure [Taskwarrior](https://taskwarrior.org/download/) is installed on your system.
 
 ### Soon to be Supported Taskwarrior Features
 
@@ -14,7 +14,6 @@ make sure [Taskwarrior](https://taskwarrior.org/download/) is installed on your 
     Mark tasks as done
     Delete tasks
     Modify tasks
-    Filter tasks
 
 ### Screenshots
 
@@ -44,6 +43,14 @@ Clone the desire branch with git
 
 A Shell reload is required <code>Alt+F2 r Enter</code> and extension
 has to be enabled with *gnome-tweak-tool*
+### Configuration 
+
+Few configuration options are available with *gnome-tweak-tool*.
+
+> taskwarrior gnome shell extension preferences.
+
+![taskwarrior gnome shell extension](taskwarriorgnomeshellprefs01.png?raw=true
+ "taskwarrior gnome shell extension preferences")
 
 ### Bug Reporting
 
