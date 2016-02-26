@@ -175,23 +175,11 @@ const TaskwarriorMenuAdvancedItem2 = new Lang.Class({
     _init: function(task) {
         this.parent();
 
-        this.label_due = new St.Label({ text: Taskwarrior.LABEL_DUE, style_class: 'task-label' });
-        this.actor.add_child(this.label_due);
         if (typeof task.due != 'undefined') {
+            this.label_due = new St.Label({ text: Taskwarrior.LABEL_DUE, style_class: 'task-label' });
+            this.actor.add_child(this.label_due);
             this.label_due_value = new St.Label({ text: Taskwarrior._checkDate(task.due) });
             this.actor.add_child(this.label_due_value);
-        }
-        if (typeof task.start != 'undefined') {
-            this.label_start = new St.Label({ text: Taskwarrior.LABEL_START, style_class: 'task-label' });
-            this.actor.add_child(this.label_start);
-            this.label_start_value = new St.Label({ text: Taskwarrior._checkDate(task.start) });
-            this.actor.add_child(this.label_start_value);
-        }
-        this.label_entered = new St.Label({ text: Taskwarrior.LABEL_ENTERED, style_class: 'task-label' });
-        this.actor.add_child(this.label_entered);
-        if (typeof task.entry != 'undefined') {
-            this.label_entered_value = new St.Label({ text: Taskwarrior._checkDate(task.entry) });
-            this.actor.add_child(this.label_entered_value);
         }
 
         let expander = new St.Bin({ style_class: 'popup-menu-item-expander' });
@@ -199,13 +187,54 @@ const TaskwarriorMenuAdvancedItem2 = new Lang.Class({
 
         this._button_del = new TaskButton(Taskwarrior.TASK_DELETE, task.uuid, 'task-button-danger');
         this.actor.add_child(this._button_del.actor);
-
-    },
-
-    setStatus: function(text) {
     }
-
 });
+
+/*
+ * Class for widget handling advanced display information and advanced buttons like delete, etc ...
+ */
+const TaskwarriorMenuAdvancedItem3 = new Lang.Class({
+    Name: 'Taskwarrior.MenuAdvancedItem3',
+    Extends: PopupMenu.PopupBaseMenuItem,
+
+    _init: function(task) {
+        this.parent();
+
+        if (typeof task.start != 'undefined') {
+            this.label_start = new St.Label({ text: Taskwarrior.LABEL_START, style_class: 'task-label' });
+            this.actor.add_child(this.label_start);
+            this.label_start_value = new St.Label({ text: Taskwarrior._checkDate(task.start) });
+            this.actor.add_child(this.label_start_value);
+        }
+
+        let expander = new St.Bin({ style_class: 'popup-menu-item-expander' });
+        this.actor.add(expander, { expand: true });
+    }
+});
+
+
+/*
+ * Class for widget handling advanced display information and advanced buttons like delete, etc ...
+ */
+const TaskwarriorMenuAdvancedItem4 = new Lang.Class({
+    Name: 'Taskwarrior.MenuAdvancedItem4',
+    Extends: PopupMenu.PopupBaseMenuItem,
+
+    _init: function(task) {
+        this.parent();
+
+        if (typeof task.entry != 'undefined') {
+            this.label_entered = new St.Label({ text: Taskwarrior.LABEL_ENTERED, style_class: 'task-label' });
+            this.actor.add_child(this.label_entered);
+            this.label_entered_value = new St.Label({ text: Taskwarrior._checkDate(task.entry) });
+            this.actor.add_child(this.label_entered_value);
+        }
+
+        let expander = new St.Bin({ style_class: 'popup-menu-item-expander' });
+        this.actor.add(expander, { expand: true });
+    }
+});
+
 
 /*
  * TODO button modify + pre filled edit window + notification
@@ -239,8 +268,8 @@ const TaskButton = new Lang.Class({
  */
 function _userNotification(status, action) {
     let source = new MessageTray.Source("taskwarrior", 'avatar-default');
-    let notif_title = "command " + action;
-    let notif_msg = !status ? "success" : "failed";
+    let notif_title = "taskwarrior cmd " + action;
+    let notif_msg = !status ? "ok" : "failed";
     let notification = new MessageTray.Notification(source, notif_title, notif_msg);
     Main.messageTray.add(source);
     source.notify(notification);
