@@ -2,10 +2,12 @@
 
 This GNOME shell extension is enabling access to [Taskwarrior](https://taskwarrior.org/) from the gnome shell taskbar.
 
-### Dependencies
+### Screenshot
 
-Taskwarrior V2.3.0 or higher :exclamation: 
-Make sure [Taskwarrior](https://taskwarrior.org/download/) is installed on your system.
+> taskwarrior gnome shell extension.
+
+![taskwarrior gnome shell extension](taskwarriorgnomeshell.png?raw=true
+ "taskwarrior gnome shell extension")
 
 ### Soon to be Supported Taskwarrior Features
 
@@ -14,13 +16,6 @@ Make sure [Taskwarrior](https://taskwarrior.org/download/) is installed on your 
     Mark tasks as done
     Delete tasks
     Modify tasks
-
-### Screenshots
-
-> taskwarrior gnome shell extension.
-
-![taskwarrior gnome shell extension](taskwarriorgnomeshell.png?raw=true
- "taskwarrior gnome shell extension")
 
 ### Installation
 
@@ -49,8 +44,13 @@ Few configuration options are available with *gnome-tweak-tool*.
 
 > taskwarrior gnome shell extension preferences.
 
-![taskwarrior gnome shell extension](taskwarriorgnomeshellprefs01.png?raw=true
+![taskwarrior gnome shell extension preferences](taskwarriorgnomeshellprefs01.png?raw=true
  "taskwarrior gnome shell extension preferences")
+
+### Dependencies
+
+Taskwarrior V2.3.0 or higher :exclamation: 
+Make sure [Taskwarrior](https://taskwarrior.org/download/) is installed on your system.
 
 ### Bug Reporting
 
