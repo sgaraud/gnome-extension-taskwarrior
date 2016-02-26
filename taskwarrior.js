@@ -242,6 +242,5 @@ function _checkDate(str) {
     str = [str.slice(0, 4), '-', str.slice(4)].join('');*/
 
     var D = new Date(y,m,d);
-    return (D.getFullYear() == y && D.getMonth() == m && D.getDate() == d) ? D.toString().split(" ")[2]
-       + ' ' + D.toString().split(" ")[1] + ' ' + D.toString().split(" ")[3] : 'invalid date';
+    return (D.getFullYear() == y && D.getMonth() == m && D.getDate() == d) ? D.toString() : 'invalid date';
 }
