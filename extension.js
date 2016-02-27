@@ -106,15 +106,18 @@ const TaskMain = new Lang.Class({
 
             // Sub menu with buttons delete, modify
             // Show extra tasks infos project, urgency, date
-            // TODO rework sub menu list
             let itemSub1 = new Ui.TaskwarriorMenuAdvancedItem1(task);
             let itemSub2 = new Ui.TaskwarriorMenuAdvancedItem2(task);
+            let itemSub3 = new Ui.TaskwarriorMenuAdvancedItem3(task);
+            let itemSub4 = new Ui.TaskwarriorMenuAdvancedItem4(task);
 
-            // Show task description + button when task is done + arrow to expand with extra options
+            // Show task description + button done + button start  + arrow to expand with extra options
             let item = new Ui.TaskwarriorMenuItem(task);
 
             item.menu.addMenuItem(itemSub1);
             item.menu.addMenuItem(itemSub2);
+            item.menu.addMenuItem(itemSub3);
+            item.menu.addMenuItem(itemSub4);
             this.menu.addMenuItem(item);
         }
     },

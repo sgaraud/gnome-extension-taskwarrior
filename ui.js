@@ -155,9 +155,6 @@ const TaskwarriorMenuAdvancedItem1 = new Lang.Class({
         let expander = new St.Bin({ style_class: 'popup-menu-item-expander' });
         this.actor.add(expander, { expand: true });
 
-        this._button_modify = new TaskButton(Taskwarrior.TASK_MODIFY, task.uuid, 'task-button');
-        this.actor.add_child(this._button_modify.actor);
-
     },
 
     setStatus: function(text) {
@@ -185,8 +182,8 @@ const TaskwarriorMenuAdvancedItem2 = new Lang.Class({
         let expander = new St.Bin({ style_class: 'popup-menu-item-expander' });
         this.actor.add(expander, { expand: true });
 
-        this._button_del = new TaskButton(Taskwarrior.TASK_DELETE, task.uuid, 'task-button-danger');
-        this.actor.add_child(this._button_del.actor);
+        this._button_modify = new TaskButton(Taskwarrior.TASK_MODIFY, task.uuid, 'task-button');
+        this.actor.add_child(this._button_modify.actor);
     }
 });
 
@@ -209,6 +206,9 @@ const TaskwarriorMenuAdvancedItem3 = new Lang.Class({
 
         let expander = new St.Bin({ style_class: 'popup-menu-item-expander' });
         this.actor.add(expander, { expand: true });
+
+        this._button_del = new TaskButton(Taskwarrior.TASK_DELETE, task.uuid, 'task-button-danger');
+        this.actor.add_child(this._button_del.actor);
     }
 });
 

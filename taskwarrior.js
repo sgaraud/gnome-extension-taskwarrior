@@ -57,9 +57,9 @@ const TASK_ERROR = 1;
 const LABEL_EMPTY = "___";
 const LABEL_PROJECT = "project: ";
 const LABEL_PRIORITY = "priority: ";
-const LABEL_ENTERED = "entered: ";
-const LABEL_START = "start: ";
-const LABEL_DUE = "due: ";
+const LABEL_ENTERED = "created: ";
+const LABEL_START = "started: ";
+const LABEL_DUE = "due:     ";
 const LABEL_TAGS = "tags: ";
 
 /*
