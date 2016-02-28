@@ -11,7 +11,7 @@ This GNOME shell extension is enabling access to [Taskwarrior](https://taskwarri
 
 ### Supported Taskwarrior Features
 
- * Display pending tasks list
+ * Display pending tasks list  
  * Display tasks due date, project, priority and tags
  * Add new tasks
  * Mark tasks as done

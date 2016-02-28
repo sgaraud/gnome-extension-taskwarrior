@@ -16,25 +16,24 @@
  * 
  */
 
-const Lang = imports.lang;
-const St = imports.gi.St;
-const Meta       = imports.gi.Meta;
-const Shell      = imports.gi.Shell;
-const Main = imports.ui.main;
+const Lang      = imports.lang;
+const St        = imports.gi.St;
+const Meta      = imports.gi.Meta;
+const Shell     = imports.gi.Shell;
+const Main      = imports.ui.main;
 const PanelMenu = imports.ui.panelMenu;
 const PopupMenu = imports.ui.popupMenu;
-const Util = imports.misc.util;
+const Util      = imports.misc.util;
 
-const ExtensionUtils = imports.misc.extensionUtils;
-const Me = ExtensionUtils.getCurrentExtension();
-const Convenience = Me.imports.convenience;
-const Prefs = Me.imports.prefs;
-const Ui = Me.imports.ui;
-const Taskwarrior = Me.imports.taskwarrior;
+const ExtensionUtils    = imports.misc.extensionUtils;
+const Me                = ExtensionUtils.getCurrentExtension();
+const Convenience       = Me.imports.convenience;
+const Prefs             = Me.imports.prefs;
+const Ui                = Me.imports.ui;
+const Taskwarrior       = Me.imports.taskwarrior;
 
 const OPEN_BROWSER = 'xdg-open';
 const INDICATOR_ICON = 'taskwarrior-icon';
-let keybindingChangedId = null;
 let Schema = null;
 
 function init() {
@@ -58,10 +57,9 @@ const TaskMain = new Lang.Class({
         this.actor.show();
 
         // Bind menu opening to user defined keyboard shortcut
-        // TODO what if not existing yet
-        this._bindShortcuts();
+        this.add_keybindings();
 
-        keybindingChangedId = Schema.connect('changed', Lang.bind(this, this._bindShortcuts));
+        this.keybindingChangedId = Schema.connect('changed', Lang.bind(this, this._bindShortcuts));
 
         // Check taskwarrior is available on host and version is ok
         if (this._verifyTaskwarriorVersion(Taskwarrior.TASKWARRIOR_COMPAT)) {
@@ -75,7 +73,6 @@ const TaskMain = new Lang.Class({
      * Function displaying main ui
      */
     _mainUi: function () {
-        log("_buildMainUi");
         this.update = new Ui.TaskwarriorListMenu(this.menu);
         this.update.refresh();
     },
@@ -110,12 +107,14 @@ const TaskMain = new Lang.Class({
      * Function redirecting to Taskwarrior website download section
      */
     _goToWebsite: function (msg) {
-        let item = new PopupMenu.PopupMenuItem(msg);
-        this.menu.addMenuItem(item);
-        this.goToWebsiteItemId = item.connect('activate', function () {
+        this.goToWebsite = new PopupMenu.PopupMenuItem(msg);
+        this.menu.addMenuItem(this.goToWebsite);
+        this.goToWebsiteId = this.goToWebsite.connect('activate', function () {
             Util.spawnCommandLine(OPEN_BROWSER + Taskwarrior.SP + Taskwarrior.TASK_WEBSITE);
         });
     },
+
+
 
     /*
      * Keybindings to open or close the menu - key can be set in the extension pref menu
@@ -126,17 +125,11 @@ const TaskMain = new Lang.Class({
     },
 
     add_keybindings: function() {
-        Main.wm.addKeybinding(
-            Prefs.TOGGLE_MENU,
-            Schema,
-            Meta.KeyBindingFlags.NONE,
-            Shell.ActionMode.NORMAL |
-            Shell.ActionMode.MESSAGE_TRAY |
-            Shell.ActionMode.OVERVIEW,
-            Lang.bind(this, function() {
-                this._toggleMenu();
-            })
-        );
+        // compatibility gnome 3.16 / 3.18
+        var ModeType = Shell.hasOwnProperty('ActionMode') ? Shell.ActionMode : Shell.KeyBindingMode;
+
+        Main.wm.addKeybinding(Prefs.TOGGLE_MENU, Schema, Meta.KeyBindingFlags.NONE, ModeType.ALL,
+            Lang.bind(this, this._toggleMenu));
     },
 
     remove_keybindings: function() {
@@ -144,20 +137,23 @@ const TaskMain = new Lang.Class({
     },
 
     _toggleMenu: function() {
-        // TODO fix not closing
-        log("_toogleMenu");
-        if(this.menu.visible) {
-            this.menu.close();
-        }
-        else {
-            this.menu.open();
-        }
+        (this.menu.isOpen) ? this.menu.close() : this.menu.open();
     },
 
     /*
-     * TODO complete
+     * Disconnect signals and remove keybindings
      */
     destroy: function () {
+        if (this.keybindingChangedId){
+            Schema.disconnect(this.keybindingChangedId);
+        }
+        if (this.actorId) {
+            this.actor.disconnect(this.actorId);
+        }
+        if (this.goToWebsiteId) {
+            this.goToWebsite.disconnect(this.goToWebsiteId);
+        }
+        this.remove_keybindings();
         this.parent();
     }
 });

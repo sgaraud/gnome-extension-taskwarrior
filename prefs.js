@@ -156,10 +156,9 @@ const TaskwarriorIntegrationPrefsWidget = new GObject.Class({
 
         let keybindings_widget = new TaskwarriorKeybindingsWidget(keybindings);
         keybindings_widget.set_sensitive(true);
-        page.add_item(keybindings_widget)
+        page.add_item(keybindings_widget);
 
-        let result = {name: name, page: page};
-        return result;
+        return {name: name, page: page};
     }
 });
 

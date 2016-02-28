@@ -38,7 +38,7 @@ const TASK_START = 'start';
 const TASK_STOP = 'stop';
 const TASK_VERSION = '--version';
 const TASK_STATUS_PENDING = 'status:pending';
-const TASK_NO_CONFIRM = 'rc.confirmation:on';
+const TASK_NO_CONFIRM = 'rc.confirmation:off';
 const TASK_ERROR = 1;
 
 const LABEL_EMPTY = "...";
@@ -55,13 +55,13 @@ const LABEL_TAGS = "tags";
  */
 var taskwarriorCmds = {
     delete: function (uuid) { return _deleteTask(uuid); },
-    modify: function (uuid) { return _modifyTask(uuid, "test"); },
+    modify: function (uuid, text) { return _modifyTask(uuid, text); },
     done: function (uuid) { return _taskDone(uuid); },
     start: function (uuid) { return _startTask(uuid); },
     stop: function (uuid) { return _stopTask(uuid); },
     add: function (text) { return _addTask(text); },
     export: function (st) { return _exportTasks(st); },
-    default: function () { log("unknown taskwarriorCmds"); }
+    default: function () { printerr("unknown taskwarriorCmds"); }
 };
 
 const Task = new Lang.Class({
@@ -84,8 +84,6 @@ const Task = new Lang.Class({
 /*
  * Taskwarrior command line syntax
  * task | filter | command | modifications | miscellaneous
- *
- *
  */
 
 
@@ -183,6 +181,7 @@ function _stopTask(uuid) {
  */
 function _modifyTask(uuid, cmd) {
     log("_modifyTask");
+    log(TASK_BIN + SP + TASK_NO_CONFIRM + SP + uuid + SP + TASK_MODIFY + SP + cmd);
     try {
         let [res, out, err, status] = GLib.spawn_command_line_sync(TASK_BIN + SP + TASK_NO_CONFIRM + SP + uuid
             + SP + TASK_MODIFY + SP + cmd);
