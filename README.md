@@ -16,7 +16,13 @@ This GNOME shell extension is enabling access to [Taskwarrior](https://taskwarri
  * Add new tasks
  * Mark tasks as done
  * Delete tasks
- * Modify tasks
+ * Start/Stop tasks
+
+### Next Supported Features
+
+ * Modify tasks attributes
+ * Choose task report order for pending tasks
+ * [maybe] Display waiting tasks
 
 ### Installation
 
