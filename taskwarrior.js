@@ -17,7 +17,6 @@
  */
 
 const GLib = imports.gi.GLib;
-const Gio = imports.gi.Gio;
 const Lang = imports.lang;
 
 
@@ -28,7 +27,6 @@ const Convenience = Me.imports.convenience;
 const TASKWARRIOR_COMPAT = [2,3,0];
 
 const SP = " ";
-const TASK_ICON = Gio.icon_new_for_string(Me.path + "/icons/Taskwarrior_icon.png");
 const TASK_WEBSITE = 'https://taskwarrior.org/download/';
 const TASK_BIN = 'task';
 const TASK_EXPORT = 'export';
@@ -225,15 +223,14 @@ function _getVersion() {
 
 
 function _checkDate(str) {
-    var y = str.substr(0,4),
+    let y = str.substr(0,4),
         m = str.substr(4,2) - 1,
-        d = str.substr(6,2);
+        d = str.substr(6,2),
+        h = str.substr(9,2),
+        mn = str.substr(11,2),
+        s = str.substr(13,2);
 
-    /*str = [str.slice(0, 13), ':', str.slice(13)].join('');
-    str = [str.slice(0, 11), ':', str.slice(11)].join('');
-    str = [str.slice(0, 6), '-', str.slice(6)].join('');
-    str = [str.slice(0, 4), '-', str.slice(4)].join('');*/
-
-    var D = new Date(y,m,d);
-    return (D.getFullYear() == y && D.getMonth() == m && D.getDate() == d) ? D.toString() : 'invalid date';
+    let D = new Date(y,m,d,h,mn,s);
+    return (D.getFullYear() == y && D.getMonth() == m && D.getDate() == d  && D.getHours() == h  &&
+    D.getMinutes() == mn && D.getSeconds() == s ) ? D.toString() : 'invalid date';
 }

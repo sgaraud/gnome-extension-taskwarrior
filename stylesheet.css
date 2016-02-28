@@ -35,9 +35,10 @@
 .task-button {
     position: relative;
     display: inline-block;
-    padding: 0 4px;
-    font-size: 10px;
+    padding: 0 2px;
+    font-size: 60%;
     font-weight: bold;
+    font-family: monospace;
     color: #333;
     white-space: nowrap;
     vertical-align: middle;
@@ -69,9 +70,10 @@
 .task-button-danger {
     position: relative;
     display: inline-block;
-    padding: 0 4px;
-    font-size: 10px;
+    padding: 0 2px;
+    font-size: 60%;
     font-weight: bold;
+    font-family: monospace;
     white-space: nowrap;
     vertical-align: middle;
     cursor: pointer;
@@ -102,8 +104,9 @@
     position: relative;
     display: inline-block;
     padding: 0 4px;
-    font-size: 10px;
+    font-size: 65%;
     font-weight: bold;
+    font-family: monospace;
     color: #eee;
     white-space: nowrap;
     vertical-align: middle;

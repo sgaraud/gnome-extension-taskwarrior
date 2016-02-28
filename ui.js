@@ -27,10 +27,13 @@ const MessageTray = imports.ui.messageTray;
 const ExtensionUtils = imports.misc.extensionUtils;
 const Me = ExtensionUtils.getCurrentExtension();
 const Taskwarrior = Me.imports.taskwarrior;
+const NOTIF_ICON = 'taskwarrior-logo';
 
 var taskMenuList = null;
+
 /*
- * Class for widget handling task list menu
+ * Class for widget task list menu
+ * TODO check if optimization required
  */
 const TaskwarriorListMenu = new Lang.Class({
     Name: 'Taskwarrior.ListMenu',
@@ -107,11 +110,11 @@ const TaskwarriorShellEntry = new Lang.Class({
     },
 
     cmd: function(text) {
-        let status = Taskwarrior.taskwarriorCmds['add'](text);
+        let status = Taskwarrior.taskwarriorCmds[Taskwarrior.TASK_ADD](text);
         TaskwarriorListMenu.prototype.refresh();
-        _userNotification(status, 'add');
+        _userNotification(status, Taskwarrior.TASK_ADD, text);
         // Reset type command
-        this._entry.text = '';
+        //this._entry.text = '';
     },
 
     activate: function(event) {
@@ -139,15 +142,15 @@ const TaskwarriorMenuItem = new Lang.Class({
         this._triangleBin.remove_child(this._triangle);
         this.actor.remove_child(this._triangleBin);
 
-        this._button_done = new TaskButton(Taskwarrior.TASK_DONE, task.uuid, 'task-button-done');
+        this._button_done = new TaskButton(Taskwarrior.TASK_DONE, task, 'task-button-done');
         this.actor.add_child(this._button_done.actor);
 
         if (typeof task.start != 'undefined') {
-            this._button_stop = new TaskButton(Taskwarrior.TASK_STOP, task.uuid, 'task-button-danger');
+            this._button_stop = new TaskButton(Taskwarrior.TASK_STOP, task, 'task-button-danger');
             this.actor.add_child(this._button_stop.actor);
         }
         else {
-            this._button_start = new TaskButton(Taskwarrior.TASK_START, task.uuid, 'task-button');
+            this._button_start = new TaskButton(Taskwarrior.TASK_START, task, 'task-button');
             this.actor.add_child(this._button_start.actor);
         }
 
@@ -227,7 +230,7 @@ const TaskwarriorMenuAdvancedItem2 = new Lang.Class({
         let expander = new St.Bin({ style_class: 'popup-menu-item-expander' });
         this.actor.add(expander, { expand: true });
 
-        this._button_modify = new TaskButton(Taskwarrior.TASK_MODIFY, task.uuid, 'task-button');
+        this._button_modify = new TaskButton(Taskwarrior.TASK_MODIFY, task, 'task-button');
         this.actor.add_child(this._button_modify.actor);
     }
 });
@@ -247,13 +250,16 @@ const TaskwarriorMenuAdvancedItem3 = new Lang.Class({
         if (typeof task.start != 'undefined') {
             this.label_start_value = new St.Label({ text: Taskwarrior._checkDate(task.start),
                 style_class: 'task-label-data'  });
-            this.actor.add_child(this.label_start_value);
         }
+        else {
+            this.label_start_value = new St.Label({ text: Taskwarrior.LABEL_EMPTY, style_class: 'task-label-data' });
+        }
+        this.actor.add_child(this.label_start_value);
 
         let expander = new St.Bin({ style_class: 'popup-menu-item-expander' });
         this.actor.add(expander, { expand: true });
 
-        this._button_del = new TaskButton(Taskwarrior.TASK_DELETE, task.uuid, 'task-button-danger');
+        this._button_del = new TaskButton(Taskwarrior.TASK_DELETE, task, 'task-button-danger');
         this.actor.add_child(this._button_del.actor);
     }
 });
@@ -274,8 +280,12 @@ const TaskwarriorMenuAdvancedItem4 = new Lang.Class({
         if (typeof task.due != 'undefined') {
             this.label_due_value = new St.Label({ text: Taskwarrior._checkDate(task.due),
                 style_class: 'task-label-data'  });
-            this.actor.add_child(this.label_due_value);
+
         }
+        else {
+            this.label_due_value = new St.Label({ text: Taskwarrior.LABEL_EMPTY, style_class: 'task-label-data' });
+        }
+        this.actor.add_child(this.label_due_value);
     }
 });
 
@@ -288,8 +298,9 @@ const TaskButton = new Lang.Class({
     Name: 'Task.Button',
     extends: 'Button',
 
-    _init: function(text, uuid,style) {
-        this.taskid = uuid;
+    _init: function(text, task, style) {
+        this.taskid = task.uuid;
+        this.taskdesc = task.description;
         this.actor = new St.Button({ reactive: true,
             can_focus: true,
             track_hover: true,
@@ -304,7 +315,7 @@ const TaskButton = new Lang.Class({
         let action = Taskwarrior.taskwarriorCmds.hasOwnProperty(this.actor.get_label()) ? this.actor.get_label() : "default";
         let status = Taskwarrior.taskwarriorCmds[action](this.taskid);
         TaskwarriorListMenu.prototype.refresh();
-        _userNotification(status, action);
+        _userNotification(status, action, this.taskdesc);
    }
 
 });
@@ -351,10 +362,10 @@ const TaskModifyDialog = new Lang.Class({
 /*
  * Notify user of action performed
  */
-function _userNotification(status, action) {
-    let source = new MessageTray.Source("taskwarrior", 'avatar-default');
-    let notif_title = "taskwarrior cmd " + action;
-    let notif_msg = !status ? "ok" : "failed";
+function _userNotification(status, action, desc) {
+    let source = new MessageTray.Source("taskwarrior", NOTIF_ICON);
+    let notif_title = !status ? "command " + action + " ok" : "command " + action + " failed";
+    let notif_msg = "task - " + desc;
     let notification = new MessageTray.Notification(source, notif_title, notif_msg);
     Main.messageTray.add(source);
     source.notify(notification);

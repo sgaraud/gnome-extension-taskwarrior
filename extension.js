@@ -33,11 +33,14 @@ const Ui = Me.imports.ui;
 const Taskwarrior = Me.imports.taskwarrior;
 
 const OPEN_BROWSER = 'xdg-open';
+const INDICATOR_ICON = 'taskwarrior-icon';
 let keybindingChangedId = null;
 let Schema = null;
 
 function init() {
     Schema = Convenience.getSettings();
+    let theme = imports.gi.Gtk.IconTheme.get_default();
+    theme.append_search_path(Me.path + '/icons');
 }
 
 const TaskMain = new Lang.Class({
@@ -49,7 +52,7 @@ const TaskMain = new Lang.Class({
         // Init gnome-shell extension icon in the taskbar
         this.parent(0.0, _("Taskwarrior Extension"));
         let nbox = new St.BoxLayout({style_class: 'panel-status-menu-box'});
-        this.icon = new St.Icon({gicon: Taskwarrior.TASK_ICON, style_class: 'system-status-icon'});
+        this.icon = new St.Icon({icon_name: INDICATOR_ICON, icon_size : 18, style_class: 'system-status-icon'});
         nbox.add_child(this.icon);
         this.actor.add_child(nbox);
         this.actor.show();
