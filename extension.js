@@ -16,20 +16,14 @@
  * 
  */
 
-const Clutter = imports.gi.Clutter;
 const Lang = imports.lang;
 const St = imports.gi.St;
 const Meta       = imports.gi.Meta;
 const Shell      = imports.gi.Shell;
-const ShellEntry = imports.ui.shellEntry;
 const Main = imports.ui.main;
-const Mainloop = imports.mainloop;
 const PanelMenu = imports.ui.panelMenu;
 const PopupMenu = imports.ui.popupMenu;
-const Gio = imports.gi.Gio;
 const Util = imports.misc.util;
-const GLib = imports.gi.GLib;
-const Gtk = imports.gi.Gtk;
 
 const ExtensionUtils = imports.misc.extensionUtils;
 const Me = ExtensionUtils.getCurrentExtension();
@@ -71,55 +65,16 @@ const TaskMain = new Lang.Class({
             this.actorId = this.actor.connect('button-press-event', Lang.bind(this, this._mainUi));
             // Get task list and build ui menu
             this._mainUi();
-            // TODO Listen for custom event published when required to rebuild UI
-
         }
-    },
-
-    _bam: function () {
-      log("BAMMMMM");
     },
 
     /*
      * Function displaying main ui
      */
     _mainUi: function () {
-
-        let taskList = Taskwarrior.taskwarriorCmds['export'](Taskwarrior.TASK_STATUS_PENDING);
-
         log("_buildMainUi");
-
-        // Rebuild completely the menu with updated data
-        this.menu.removeAll();
-
-        // Display entry field for Adding Tasks
-        this.menu.addMenuItem(new Ui.TaskwarriorShellEntry());
-        //this.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
-
-        // If nothing to display, just finish here
-        if (typeof taskList === 'undefined') {
-            return;
-        }
-
-        // Lists the current tasks as in the taskList struct
-        for (let task of taskList) {
-
-            // Sub menu with buttons delete, modify
-            // Show extra tasks infos project, urgency, date
-            let itemSub1 = new Ui.TaskwarriorMenuAdvancedItem1(task);
-            let itemSub2 = new Ui.TaskwarriorMenuAdvancedItem2(task);
-            let itemSub3 = new Ui.TaskwarriorMenuAdvancedItem3(task);
-            let itemSub4 = new Ui.TaskwarriorMenuAdvancedItem4(task);
-
-            // Show task description + button done + button start  + arrow to expand with extra options
-            let item = new Ui.TaskwarriorMenuItem(task);
-
-            item.menu.addMenuItem(itemSub1);
-            item.menu.addMenuItem(itemSub2);
-            item.menu.addMenuItem(itemSub3);
-            item.menu.addMenuItem(itemSub4);
-            this.menu.addMenuItem(item);
-        }
+        this.update = new Ui.TaskwarriorListMenu(this.menu);
+        this.update.refresh();
     },
 
     /*

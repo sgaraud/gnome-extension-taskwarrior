@@ -1,21 +1,42 @@
 /* Labels format */
 .task-label {
-   font-weight: bold;
-   color: #d5d5d5;
+    /*font-weight: bold;*/
+    width: 60px;
+    /*text-align: center;*/
+    /*background-color: dimgray;*/
+    color: #fff;
+}
+.task-label-center {
+    /*font-weight: bold;*/
+    width: 65px;
+    text-align: center;
+    /*background-color: dimgray;*/
+    color: #fff;
+}
+.task-label-data {
+    color: #b0c4de;
+}
+.task-label-data-red {
+    font-weight: bold;
+    color: #ff0000;
+}
+.task-label-data-orange {
+    font-weight: bold;
+    color: #ff4500;
 }
 
 /* Task entries */
 .task-entry {
    border-width: 1px;
-   border-color: #3c8cdd;
+   border-color: #60b044;
 }
 
 /* Generic buttons */
 .task-button {
     position: relative;
     display: inline-block;
-    padding: 0 10px;
-    font-size: 11px;
+    padding: 0 4px;
+    font-size: 10px;
     font-weight: bold;
     color: #333;
     white-space: nowrap;
@@ -48,8 +69,8 @@
 .task-button-danger {
     position: relative;
     display: inline-block;
-    padding: 0 10px;
-    font-size: 11px;
+    padding: 0 4px;
+    font-size: 10px;
     font-weight: bold;
     white-space: nowrap;
     vertical-align: middle;
@@ -61,27 +82,27 @@
     border: 1px solid #d5d5d5;
     background-color: #eee;
     border-radius: 3px;
-    color: #900
+    color: #900;
    }
 .task-button-danger:hover,
 .task-button-danger:focus {
     color: #eee;
     border-color: #cd504a;
-    background-color: #b33630
+    background-color: #b33630;
  }
 
 .task-button-danger:active,
 .task-button-danger.active {
     color: #b33630;
     border-color: #a0302a;
-    background-color: #eee
+    background-color: #eee;
 }
 
 .task-button-done {
     position: relative;
     display: inline-block;
-    padding: 0 10px;
-    font-size: 11px;
+    padding: 0 4px;
+    font-size: 10px;
     font-weight: bold;
     color: #eee;
     white-space: nowrap;
@@ -93,19 +114,19 @@
     outline: none;
     border: 1px solid #5ca941;
     background-color: #60b044;
-    border-radius: 3px
+    border-radius: 3px;
 }
 
 .task-button-done:hover,
 .task-button-done:focus {
     color: #eee;
     border-color: #4a993e;
-    background-color: #418737
+    background-color: #418737;
 }
 
 .task-button-done:active,
 .task-button-done.active {
     color: #eee;
     border-color: #569e3d;
-    background-color: #4a993e
+    background-color: #4a993e;
 }

@@ -16,13 +16,9 @@
  *
  */
 
-const GLib = imports.gi.GLib;
 const GObject = imports.gi.GObject;
-const Gio = imports.gi.Gio;
 const Gtk = imports.gi.Gtk;
 const Lang = imports.lang;
-
-const Params = imports.misc.params;
 
 const ExtensionUtils = imports.misc.extensionUtils;
 const Me = ExtensionUtils.getCurrentExtension();
@@ -38,9 +34,9 @@ function init() {
     Schema = Convenience.getSettings();
 }
 
-const KeybindingsWidget = new GObject.Class({
-    Name: 'Keybindings.Widget',
-    GTypeName: 'KeybindingsWidget',
+const TaskwarriorKeybindingsWidget = new GObject.Class({
+    Name: 'Taskwarrior.Keybindings.Widget',
+    GTypeName: 'TaskwarriorKeybindingsWidget',
     Extends: Gtk.Box,
 
     _init: function(keybindings) {
@@ -109,9 +105,9 @@ const KeybindingsWidget = new GObject.Class({
     }
 });
 
-const PrefsGrid = new GObject.Class({
-    Name: 'Prefs.Grid',
-    GTypeName: 'PrefsGrid',
+const TaskwarriorPrefsGrid = new GObject.Class({
+    Name: 'Taskwarrior.Prefs.Grid',
+    GTypeName: 'TaskwarriorPrefsGrid',
     Extends: Gtk.Grid,
 
     _init: function(settings, params) {
@@ -153,12 +149,12 @@ const TaskwarriorIntegrationPrefsWidget = new GObject.Class({
 
     _get_keybindings_page: function() {
         let name = _("Shortcuts");
-        let page = new PrefsGrid(Schema);
+        let page = new TaskwarriorPrefsGrid(Schema);
 
         let keybindings = {};
         keybindings[TOGGLE_MENU] = _("Open taskwarrior list");
 
-        let keybindings_widget = new KeybindingsWidget(keybindings);
+        let keybindings_widget = new TaskwarriorKeybindingsWidget(keybindings);
         keybindings_widget.set_sensitive(true);
         page.add_item(keybindings_widget)
 

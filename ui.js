@@ -16,28 +16,65 @@
  *
  */
 
-const GLib = imports.gi.GLib;
-const GObject = imports.gi.GObject;
-const Gio = imports.gi.Gio;
-const Gtk = imports.gi.Gtk;
 const Lang = imports.lang;
 const Main = imports.ui.main;
 const St = imports.gi.St;
-const Params = imports.misc.params;
-const Shell      = imports.gi.Shell;
 const ShellEntry = imports.ui.shellEntry;
 const PopupMenu = imports.ui.popupMenu;
-const PanelMenu = imports.ui.panelMenu;
-const Atk = imports.gi.Atk;
 const Clutter = imports.gi.Clutter;
-const Tweener = imports.ui.tweener;
 const MessageTray = imports.ui.messageTray;
 
 const ExtensionUtils = imports.misc.extensionUtils;
 const Me = ExtensionUtils.getCurrentExtension();
-const Convenience = Me.imports.convenience;
 const Taskwarrior = Me.imports.taskwarrior;
-const Extension = Me.imports.extension;
+
+var taskMenuList = null;
+/*
+ * Class for widget handling task list menu
+ */
+const TaskwarriorListMenu = new Lang.Class({
+    Name: 'Taskwarrior.ListMenu',
+
+    _init: function(menu) {
+        taskMenuList = menu;
+    },
+
+    refresh: function() {
+
+        // Rebuild completely the menu with updated data
+        taskMenuList.removeAll();
+
+        // Display entry field for Adding Tasks
+        taskMenuList.addMenuItem(new TaskwarriorShellEntry());
+
+        let taskList = Taskwarrior.taskwarriorCmds['export'](Taskwarrior.TASK_STATUS_PENDING);
+        // If nothing to display, just finish here
+        if (typeof taskList === 'undefined' || taskList == Taskwarrior.TASK_ERROR) {
+            return;
+        }
+
+        // Lists the current tasks as in the taskList struct
+        for (let task of taskList) {
+
+            // Sub menu with buttons delete, modify
+            // Show extra tasks infos project, urgency, date
+            let itemSub1 = new TaskwarriorMenuAdvancedItem1(task);
+            let itemSub2 = new TaskwarriorMenuAdvancedItem2(task);
+            let itemSub3 = new TaskwarriorMenuAdvancedItem3(task);
+            let itemSub4 = new TaskwarriorMenuAdvancedItem4(task);
+
+            // Show task description + button done + button start  + arrow to expand with extra options
+            let item = new TaskwarriorMenuItem(task);
+
+            item.menu.addMenuItem(itemSub1);
+            item.menu.addMenuItem(itemSub2);
+            item.menu.addMenuItem(itemSub3);
+            item.menu.addMenuItem(itemSub4);
+            taskMenuList.addMenuItem(item);
+        }
+    }
+});
+
 
 /*
  * Class for widget handling add new task field
@@ -71,8 +108,7 @@ const TaskwarriorShellEntry = new Lang.Class({
 
     cmd: function(text) {
         let status = Taskwarrior.taskwarriorCmds['add'](text);
-        // TODO notify main loop for refreshing UI
-        this.emit('interface-click', status);
+        TaskwarriorListMenu.prototype.refresh();
         _userNotification(status, 'add');
         // Reset type command
         this._entry.text = '';
@@ -134,32 +170,40 @@ const TaskwarriorMenuAdvancedItem1 = new Lang.Class({
         this.label_priority = new St.Label({ text: Taskwarrior.LABEL_PRIORITY, style_class: 'task-label' });
         this.actor.add_child(this.label_priority);
         if (typeof task.priority != 'undefined') {
-            this.label_priority_value = new St.Label({ text: task.priority });
-            this.actor.add_child(this.label_priority_value);
+            let style = 'task-label-data';
+            if ( task.priority == 'H') {
+                style = 'task-label-data-red';
+            }
+            else if ( task.priority == 'M') {
+                style = 'task-label-data-orange';
+            }
+            this.label_priority_value = new St.Label({ text: task.priority, style_class: style });
         }
+        else {
+            this.label_priority_value = new St.Label({ text: Taskwarrior.LABEL_EMPTY, style_class: 'task-label-data' });
+        }
+        this.actor.add_child(this.label_priority_value);
 
-        this.label_project = new St.Label({ text: Taskwarrior.LABEL_PROJECT, style_class: 'task-label' });
+        this.label_project = new St.Label({ text: Taskwarrior.LABEL_PROJECT, style_class: 'task-label-center' });
         this.actor.add_child(this.label_project);
         if (typeof task.project != 'undefined') {
-            this.label_project_value = new St.Label({ text: task.project });
-            this.actor.add_child(this.label_project_value);
+            this.label_project_value = new St.Label({ text: task.project, style_class: 'task-label-data' });
         }
+        else {
+            this.label_project_value = new St.Label({ text: Taskwarrior.LABEL_EMPTY, style_class: 'task-label-data'  });
+        }
+        this.actor.add_child(this.label_project_value);
 
-        this.label_tags = new St.Label({ text: Taskwarrior.LABEL_TAGS, style_class: 'task-label' });
+        this.label_tags = new St.Label({ text: Taskwarrior.LABEL_TAGS, style_class: 'task-label-center' });
         this.actor.add_child(this.label_tags);
         if (typeof task.tags != 'undefined') {
-            this.label_tags_value = new St.Label({ text: task.tags.toString() });
-            this.actor.add_child(this.label_tags_value);
+            this.label_tags_value = new St.Label({ text: task.tags.toString(), style_class: 'task-label-data'  });
         }
-
-        let expander = new St.Bin({ style_class: 'popup-menu-item-expander' });
-        this.actor.add(expander, { expand: true });
-
-    },
-
-    setStatus: function(text) {
+        else {
+            this.label_tags_value = new St.Label({ text: Taskwarrior.LABEL_EMPTY, style_class: 'task-label-data'  });
+        }
+        this.actor.add_child(this.label_tags_value);
     }
-
 });
 
 /*
@@ -172,11 +216,12 @@ const TaskwarriorMenuAdvancedItem2 = new Lang.Class({
     _init: function(task) {
         this.parent();
 
-        if (typeof task.due != 'undefined') {
-            this.label_due = new St.Label({ text: Taskwarrior.LABEL_DUE, style_class: 'task-label' });
-            this.actor.add_child(this.label_due);
-            this.label_due_value = new St.Label({ text: Taskwarrior._checkDate(task.due) });
-            this.actor.add_child(this.label_due_value);
+        this.label_entered = new St.Label({ text: Taskwarrior.LABEL_ENTERED, style_class: 'task-label' });
+        this.actor.add_child(this.label_entered);
+        if (typeof task.entry != 'undefined') {
+            this.label_entered_value = new St.Label({ text: Taskwarrior._checkDate(task.entry),
+                style_class: 'task-label-data'  });
+            this.actor.add_child(this.label_entered_value);
         }
 
         let expander = new St.Bin({ style_class: 'popup-menu-item-expander' });
@@ -197,10 +242,11 @@ const TaskwarriorMenuAdvancedItem3 = new Lang.Class({
     _init: function(task) {
         this.parent();
 
+        this.label_start = new St.Label({ text: Taskwarrior.LABEL_START, style_class: 'task-label' });
+        this.actor.add_child(this.label_start);
         if (typeof task.start != 'undefined') {
-            this.label_start = new St.Label({ text: Taskwarrior.LABEL_START, style_class: 'task-label' });
-            this.actor.add_child(this.label_start);
-            this.label_start_value = new St.Label({ text: Taskwarrior._checkDate(task.start) });
+            this.label_start_value = new St.Label({ text: Taskwarrior._checkDate(task.start),
+                style_class: 'task-label-data'  });
             this.actor.add_child(this.label_start_value);
         }
 
@@ -223,15 +269,13 @@ const TaskwarriorMenuAdvancedItem4 = new Lang.Class({
     _init: function(task) {
         this.parent();
 
-        if (typeof task.entry != 'undefined') {
-            this.label_entered = new St.Label({ text: Taskwarrior.LABEL_ENTERED, style_class: 'task-label' });
-            this.actor.add_child(this.label_entered);
-            this.label_entered_value = new St.Label({ text: Taskwarrior._checkDate(task.entry) });
-            this.actor.add_child(this.label_entered_value);
+        this.label_due = new St.Label({ text: Taskwarrior.LABEL_DUE, style_class: 'task-label' });
+        this.actor.add_child(this.label_due);
+        if (typeof task.due != 'undefined') {
+            this.label_due_value = new St.Label({ text: Taskwarrior._checkDate(task.due),
+                style_class: 'task-label-data'  });
+            this.actor.add_child(this.label_due_value);
         }
-
-        let expander = new St.Bin({ style_class: 'popup-menu-item-expander' });
-        this.actor.add(expander, { expand: true });
     }
 });
 
@@ -242,10 +286,12 @@ const TaskwarriorMenuAdvancedItem4 = new Lang.Class({
  */
 const TaskButton = new Lang.Class({
     Name: 'Task.Button',
+    extends: 'Button',
 
     _init: function(text, uuid,style) {
         this.taskid = uuid;
         this.actor = new St.Button({ reactive: true,
+            can_focus: true,
             track_hover: true,
             style_class: style,
             label: text });
@@ -257,9 +303,48 @@ const TaskButton = new Lang.Class({
     _onClicked: function() {
         let action = Taskwarrior.taskwarriorCmds.hasOwnProperty(this.actor.get_label()) ? this.actor.get_label() : "default";
         let status = Taskwarrior.taskwarriorCmds[action](this.taskid);
-        // TODO notify main loop for refreshing UI
+        TaskwarriorListMenu.prototype.refresh();
         _userNotification(status, action);
    }
+
+});
+/*
+ * Prompt dialog to confirm command before execution
+ */
+const TaskConfirmDialog = new Lang.Class({
+    Name: 'Task.Confirm.Dialog',
+
+    _init: function(text) {
+
+    },
+
+    _destroy: function() {
+
+    },
+
+    _onClicked: function() {
+
+    }
+
+});
+
+/*
+ * Dialog window to confirm modify task attributes
+ */
+const TaskModifyDialog = new Lang.Class({
+    Name: 'Task.Modify.Dialog',
+
+    _init: function(text) {
+
+    },
+
+    _destroy: function() {
+
+    },
+
+    _onClicked: function() {
+
+    }
 
 });
 

@@ -17,20 +17,9 @@
  */
 
 const GLib = imports.gi.GLib;
-const GObject = imports.gi.GObject;
 const Gio = imports.gi.Gio;
-const Gtk = imports.gi.Gtk;
 const Lang = imports.lang;
-const Main = imports.ui.main;
-const St = imports.gi.St;
-const Params = imports.misc.params;
-const Shell = imports.gi.Shell;
-const ShellEntry = imports.ui.shellEntry;
-const PopupMenu = imports.ui.popupMenu;
-const PanelMenu = imports.ui.panelMenu;
-const Atk = imports.gi.Atk;
-const Clutter = imports.gi.Clutter;
-const Tweener = imports.ui.tweener;
+
 
 const ExtensionUtils = imports.misc.extensionUtils;
 const Me = ExtensionUtils.getCurrentExtension();
@@ -54,13 +43,13 @@ const TASK_STATUS_PENDING = 'status:pending';
 const TASK_NO_CONFIRM = 'rc.confirmation:on';
 const TASK_ERROR = 1;
 
-const LABEL_EMPTY = "___";
-const LABEL_PROJECT = "project: ";
-const LABEL_PRIORITY = "priority: ";
-const LABEL_ENTERED = "created: ";
-const LABEL_START = "started: ";
-const LABEL_DUE = "due:     ";
-const LABEL_TAGS = "tags: ";
+const LABEL_EMPTY = "...";
+const LABEL_PROJECT = "project";
+const LABEL_PRIORITY = "priority";
+const LABEL_ENTERED = "created";
+const LABEL_START = "started";
+const LABEL_DUE = "due";
+const LABEL_TAGS = "tags";
 
 /*
  * Dispatch table for possible cmd towards taskwarrior
@@ -107,6 +96,7 @@ const Task = new Lang.Class({
  */
 function _exportTasks (st) {
     log("_exportTasks");
+    //this.emit('task::export');
     let taskList = [];
     try {
         //[ok: Boolean, standard_output: ByteArray, standard_error: ByteArray, exit_status: Number(gint)]
@@ -127,6 +117,8 @@ function _exportTasks (st) {
         return TASK_ERROR;
     }
 }
+
+//Signals.addSignalMethods(_exportTasks);
 
 /*
  * Function to compose a valid command line as a simple way to add task into Taskwarrior.
@@ -170,6 +162,7 @@ function _startTask(uuid) {
         printerr(err);
         return TASK_ERROR;
     }
+
 }
 
 /*
