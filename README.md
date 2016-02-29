@@ -1,4 +1,4 @@
-# Taskwarrior access from the GNOME Shell
+# Taskwarrior access from GNOME Shell
 
 This GNOME shell extension is enabling access to [Taskwarrior](https://taskwarrior.org/) from the gnome shell taskbar.
 
@@ -18,7 +18,7 @@ This GNOME shell extension is enabling access to [Taskwarrior](https://taskwarri
  * Delete tasks
  * Start/Stop tasks
 
-### Next Supported Features
+### Upcoming Supported Features
 
  * Modify tasks attributes
  * Choose task report order for pending tasks
