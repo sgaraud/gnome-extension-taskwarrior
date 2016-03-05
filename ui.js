@@ -50,7 +50,7 @@ const TaskwarriorListMenu = new Lang.Class({
         // Display entry field for Adding Tasks
         taskMenuList.addMenuItem(new TaskwarriorShellEntry());
 
-        let taskList = Taskwarrior.taskwarriorCmds['export'](Taskwarrior.TASK_STATUS_PENDING);
+        let taskList = Taskwarrior.taskwarriorCmds[Taskwarrior.TASK_EXPORT](Taskwarrior.TASK_STATUS_PENDING);
         // If nothing to display, just finish here
         if (typeof taskList === 'undefined' || taskList == Taskwarrior.TASK_ERROR) {
             return;

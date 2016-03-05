@@ -92,7 +92,6 @@ const Task = new Lang.Class({
  */
 function _exportTasks (st) {
     log("_exportTasks");
-    //this.emit('task::export');
     let taskList = [];
     try {
         //[ok: Boolean, standard_output: ByteArray, standard_error: ByteArray, exit_status: Number(gint)]
