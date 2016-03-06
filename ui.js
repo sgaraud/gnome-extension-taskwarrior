@@ -449,7 +449,8 @@ const TaskModifyDialog = new Lang.Class({
 
         this.contentLayout.add(new St.Label({text: title}));
         this.contentLayout.add(new St.Label({text: message}));
-        this.modEntry = new St.Entry({style_class: 'task-entry', hint_text: _("proj:blabla +tag1 +tag2 due:tomorrow")});
+        this.modEntry = new St.Entry({hint_text: _("...")});
+        ShellEntry.addContextMenu(this.modEntry);
         this.contentLayout.add(this.modEntry);
         this.contentLayout.add(new St.Label({text: ''}));
 
