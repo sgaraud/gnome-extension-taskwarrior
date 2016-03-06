@@ -106,7 +106,8 @@ function _exportTasks (st) {
                 taskList[i] = new Task(json);
             }
         }
-        return taskList;
+        // return from most urgent to less urgent tasks
+        return taskList.sort(compareUrgencies);
     } catch (err) {
         printerr(err);
         return TASK_ERROR;
@@ -120,7 +121,7 @@ function _exportTasks (st) {
  */
 function _addTask(text) {
     log("_addTask");
-    // TODO handle character escape
+    // no character escape at all !
     log(text);
     try {
         let [res, out, err, status] = GLib.spawn_command_line_sync(TASK_BIN + SP + TASK_ADD + SP + text);
@@ -178,12 +179,12 @@ function _stopTask(uuid) {
 /*
  * Function to modify a task.
  */
-function _modifyTask(uuid, cmd) {
+function _modifyTask(uuid, text) {
     log("_modifyTask");
-    log(TASK_BIN + SP + TASK_NO_CONFIRM + SP + uuid + SP + TASK_MODIFY + SP + cmd);
+    log(TASK_BIN + SP + TASK_NO_CONFIRM + SP + uuid + SP + TASK_MODIFY + SP + text);
     try {
         let [res, out, err, status] = GLib.spawn_command_line_sync(TASK_BIN + SP + TASK_NO_CONFIRM + SP + uuid
-            + SP + TASK_MODIFY + SP + cmd);
+            + SP + TASK_MODIFY + SP + text);
         return status;
     } catch (err) {
         printerr(err);
@@ -219,10 +220,12 @@ function _getVersion() {
     }
 }
 
-
+/*
+ * Utilities functions
+ */
 function _checkDate(str) {
     let y = str.substr(0,4),
-        m = str.substr(4,2) - 1,
+        m = str.substr(4,2) - 1, // january is 0
         d = str.substr(6,2),
         h = str.substr(9,2),
         mn = str.substr(11,2),
@@ -231,4 +234,9 @@ function _checkDate(str) {
     let D = new Date(y,m,d,h,mn,s);
     return (D.getFullYear() == y && D.getMonth() == m && D.getDate() == d  && D.getHours() == h  &&
     D.getMinutes() == mn && D.getSeconds() == s ) ? D.toString() : 'invalid date';
+}
+
+// sort from most to less urgent
+function compareUrgencies(a, b) {
+    return b.urgency - a.urgency;
 }

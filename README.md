@@ -9,10 +9,10 @@ This GNOME shell extension is enabling access to [Taskwarrior](https://taskwarri
 ![taskwarrior gnome shell extension](taskwarriorgnomeshell.png?raw=true
  "taskwarrior gnome shell extension")
 
-### Supported Taskwarrior Features in extension V1
+### Supported Taskwarrior Features
 
- * Display pending tasks list (using default next report) 
- * Display tasks due date, project, priority and tags in submenu
+ * Display pending tasks list (default by urgency) 
+ * Display extended tasks data (due date, project, priority and tags)
  * Add new tasks
  * Mark tasks as done
  * Delete tasks
@@ -21,7 +21,9 @@ This GNOME shell extension is enabling access to [Taskwarrior](https://taskwarri
 
 ### Upcoming Features in next version V2
 
- * Preferences to customize task report
+ * Filter pending task list on projects, tags, etc ...
+ * Customize through preferences menu
+ * More keybindings
  * Possibiliy to display waiting tasks
 
 ### Installation

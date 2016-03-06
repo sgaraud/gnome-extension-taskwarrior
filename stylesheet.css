@@ -4,25 +4,23 @@
     width: 60px;
     /*text-align: center;*/
     /*background-color: dimgray;*/
-    color: #fff;
+    color: #b6cbe5;
 }
 .task-label-center {
     /*font-weight: bold;*/
     width: 65px;
     text-align: center;
     /*background-color: dimgray;*/
-    color: #fff;
+    color: #b6cbe5;
 }
 .task-label-data {
-    color: #b0c4de;
+    color: #e0ffc8;
 }
 .task-label-data-red {
-    font-weight: bold;
     color: #ff0000;
 }
 .task-label-data-orange {
-    font-weight: bold;
-    color: #ff4500;
+    color: #ff8500;
 }
 
 /* Task entries */

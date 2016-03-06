@@ -24,6 +24,7 @@ const PopupMenu = imports.ui.popupMenu;
 const Clutter = imports.gi.Clutter;
 const MessageTray = imports.ui.messageTray;
 const ModalDialog = imports.ui.modalDialog;
+const BoxPointer = imports.ui.boxpointer;
 
 const ExtensionUtils = imports.misc.extensionUtils;
 const Me = ExtensionUtils.getCurrentExtension();
@@ -34,6 +35,7 @@ var taskMenuList = null;
 /*
  * Class for widget task list menu
  * TODO check if optimization required
+ * TODO make a filter system on tasklist
  */
 const TaskwarriorListMenu = new Lang.Class({
     Name: 'Taskwarrior.ListMenu',
@@ -43,6 +45,7 @@ const TaskwarriorListMenu = new Lang.Class({
     },
 
     refresh: function() {
+        let i;
 
         // Rebuild completely the menu with updated data
         taskMenuList.removeAll();
@@ -56,18 +59,18 @@ const TaskwarriorListMenu = new Lang.Class({
             return;
         }
 
-        // Lists the current tasks as in the taskList struct
-        for (let task of taskList) {
+        // Lists the current tasks as sorted in the taskList struct
+        for (i = 0; i < taskList.length; i++) {
 
             // Sub menu with buttons delete, modify
             // Show extra tasks infos project, urgency, date
-            let itemSub1 = new TaskwarriorMenuAdvancedItem1(task);
-            let itemSub2 = new TaskwarriorMenuAdvancedItem2(task);
-            let itemSub3 = new TaskwarriorMenuAdvancedItem3(task);
-            let itemSub4 = new TaskwarriorMenuAdvancedItem4(task);
+            let itemSub1 = new TaskwarriorMenuAdvancedItem1(taskList[i]);
+            let itemSub2 = new TaskwarriorMenuAdvancedItem2(taskList[i]);
+            let itemSub3 = new TaskwarriorMenuAdvancedItem3(taskList[i]);
+            let itemSub4 = new TaskwarriorMenuAdvancedItem4(taskList[i]);
 
             // Show task description + button done + button start  + arrow to expand with extra options
-            let item = new TaskwarriorMenuItem(task);
+            let item = new TaskwarriorMenuItem(taskList[i]);
 
             item.menu.addMenuItem(itemSub1);
             item.menu.addMenuItem(itemSub2);
@@ -138,19 +141,22 @@ const TaskwarriorMenuItem = new Lang.Class({
     _init: function(task) {
         this.parent(task.description);
 
+
+        //this.actor.add_style_class_name('task-label-data-red');
+
         // Remove some original widget parts for rebuilding with the extra buttons
         this._triangleBin.remove_child(this._triangle);
         this.actor.remove_child(this._triangleBin);
 
-        this._button_done = new TaskButton(Taskwarrior.TASK_DONE, task, 'task-button-done', 'normal');
+        this._button_done = new TaskButton(Taskwarrior.TASK_DONE, task, 'task-button-done');
         this.actor.add_child(this._button_done.actor);
 
         if (typeof task.start != 'undefined') {
-            this._button_stop = new TaskButton(Taskwarrior.TASK_STOP, task, 'task-button-danger', 'normal');
+            this._button_stop = new TaskButton(Taskwarrior.TASK_STOP, task, 'task-button-danger');
             this.actor.add_child(this._button_stop.actor);
         }
         else {
-            this._button_start = new TaskButton(Taskwarrior.TASK_START, task, 'task-button', 'normal');
+            this._button_start = new TaskButton(Taskwarrior.TASK_START, task, 'task-button');
             this.actor.add_child(this._button_start.actor);
         }
 
@@ -230,7 +236,7 @@ const TaskwarriorMenuAdvancedItem2 = new Lang.Class({
         let expander = new St.Bin({ style_class: 'popup-menu-item-expander' });
         this.actor.add(expander, { expand: true });
 
-        this._button_del = new TaskButton(Taskwarrior.TASK_DELETE, task, 'task-button-danger','confirm');
+        this._button_del = new TaskButton(Taskwarrior.TASK_DELETE, task, 'task-button-danger');
         this.actor.add_child(this._button_del.actor);
     }
 });
@@ -255,6 +261,13 @@ const TaskwarriorMenuAdvancedItem3 = new Lang.Class({
             this.label_start_value = new St.Label({ text: Taskwarrior.LABEL_EMPTY, style_class: 'task-label-data' });
         }
         this.actor.add_child(this.label_start_value);
+
+        let expander = new St.Bin({ style_class: 'popup-menu-item-expander' });
+        this.actor.add(expander, { expand: true });
+
+        this._button_mod = new TaskButton(Taskwarrior.TASK_MODIFY, task, 'task-button');
+        this.actor.add_child(this._button_mod.actor);
+
     }
 });
 
@@ -291,7 +304,7 @@ const TaskButton = new Lang.Class({
     Name: 'Task.Button',
     extends: 'Button',
 
-    _init: function(text, task, style, type) {
+    _init: function(text, task, style) {
         this.taskid = task.uuid;
         this.taskdesc = task.description;
         this.actor = new St.Button({ reactive: true, can_focus: true, track_hover: true, style_class: style, label: text });
@@ -302,6 +315,9 @@ const TaskButton = new Lang.Class({
 
         if (this.action === Taskwarrior.TASK_DELETE){
             this.actor.connect('clicked', Lang.bind(this, this._onConfirmed));
+        }
+        else if (this.action === Taskwarrior.TASK_MODIFY){
+            this.actor.connect('clicked', Lang.bind(this, this._onModified));
         }
         else {
             this.actor.connect('clicked', Lang.bind(this, this._onClicked));
@@ -328,6 +344,21 @@ const TaskButton = new Lang.Class({
         );
         taskMenuList.close();
         confirmDialog.open();
+    },
+
+    _onModified: function() {
+        let modifyDialog = new TaskModifyDialog(
+            _('Modify the task attributes'),
+            _(''),
+            Lang.bind(this, function(text) {
+                let status = Taskwarrior.taskwarriorCmds[this.action](this.taskid, text);
+                log( this.actor.get_label(), status, this.action, this.taskdesc, text);
+                TaskwarriorListMenu.prototype.refresh();
+                _userNotification(status, this.action, this.taskdesc);
+            })
+        );
+        taskMenuList.close();
+        modifyDialog.open();
     }
 });
 
@@ -346,9 +377,14 @@ const TaskConfirmDialog = new Lang.Class({
         this.contentLayout.add(new St.Label({text: message}));
 
         this.setButtons([
-            { label: _('Cancel'), action: Lang.bind(this, this.close), key: Clutter.Escape},
+            { label: _('Cancel'), action: Lang.bind(this, this._onCancelButton), key: Clutter.Escape},
             { label: _('Ok'), action: Lang.bind(this, this._onOkButton), key: Clutter.Return }
         ]);
+    },
+
+    _onCancelButton: function() {
+        this.close();
+        taskMenuList.open();
     },
 
     _onOkButton: function() {
@@ -358,8 +394,46 @@ const TaskConfirmDialog = new Lang.Class({
     }
 });
 
+
+/*
+ * Prompt dialog to modify task attributes
+ */
+const TaskModifyDialog = new Lang.Class({
+    Name: 'Task.Modify.Dialog',
+    Extends: ModalDialog.ModalDialog,
+
+    _init: function(title, message, callback) {
+        this.parent();
+        this._callback = callback;
+
+        this.contentLayout.add(new St.Label({text: title}));
+        this.contentLayout.add(new St.Label({text: message}));
+        this.modEntry = new St.Entry({style_class: 'task-entry'});
+        this.contentLayout.add(this.modEntry);
+        this.contentLayout.add(new St.Label({text: ''}));
+
+        this.setButtons([
+            { label: _('Cancel'), action: Lang.bind(this, this._onCancelButton), key: Clutter.Escape},
+            { label: _('Ok'), action: Lang.bind(this, this._onOkButton), key: Clutter.Return }
+        ]);
+    },
+
+    _onCancelButton: function() {
+        this.close();
+        taskMenuList.open();
+    },
+
+    _onOkButton: function() {
+        log(this.modEntry.get_text());
+        this._callback(this.modEntry.get_text());
+        this.close();
+        taskMenuList.open();
+    }
+});
+
 /*
  * Notify user of action performed
+ * TODO only on failure ?
  */
 function _userNotification(status, action, desc) {
     let source = new MessageTray.Source("taskwarrior", NOTIF_ICON);
