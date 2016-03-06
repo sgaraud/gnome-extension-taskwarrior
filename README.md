@@ -2,13 +2,6 @@
 
 This GNOME shell extension is enabling access to [Taskwarrior](https://taskwarrior.org/) from the gnome shell taskbar.
 
-### Screenshot
-
-> taskwarrior gnome shell extension.
-
-![taskwarrior gnome shell extension](taskwarriorgnomeshell.png?raw=true
- "taskwarrior gnome shell extension")
-
 ### Supported Taskwarrior Features
 
  * Display pending tasks list (default by urgency) 
@@ -25,6 +18,17 @@ This GNOME shell extension is enabling access to [Taskwarrior](https://taskwarri
  * Customization through preferences menu
  * More keybindings
  * Constant menu width
+
+### Screenshot
+
+> taskwarrior gnome shell extension.
+
+![taskwarrior gnome shell extension](taskwarriorgnomeshell.png?raw=true
+ "taskwarrior gnome shell extension")
+ 
+### Usage
+
+TODO
 
 ### Installation
 
