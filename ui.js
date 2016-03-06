@@ -16,44 +16,52 @@
  *
  */
 
-const Lang = imports.lang;
-const Main = imports.ui.main;
-const St = imports.gi.St;
-const ShellEntry = imports.ui.shellEntry;
-const PopupMenu = imports.ui.popupMenu;
-const Clutter = imports.gi.Clutter;
-const MessageTray = imports.ui.messageTray;
-const ModalDialog = imports.ui.modalDialog;
-const BoxPointer = imports.ui.boxpointer;
+const Lang          = imports.lang;
+const Main          = imports.ui.main;
+const St            = imports.gi.St;
+const ShellEntry    = imports.ui.shellEntry;
+const PopupMenu     = imports.ui.popupMenu;
+const Clutter       = imports.gi.Clutter;
+const MessageTray   = imports.ui.messageTray;
+const ModalDialog   = imports.ui.modalDialog;
+const BoxPointer    = imports.ui.boxpointer;
 
-const ExtensionUtils = imports.misc.extensionUtils;
-const Me = ExtensionUtils.getCurrentExtension();
-const Taskwarrior = Me.imports.taskwarrior;
+const ExtensionUtils    = imports.misc.extensionUtils;
+const Me                = ExtensionUtils.getCurrentExtension();
+const Convenience       = Me.imports.convenience;
+const Taskwarrior       = Me.imports.taskwarrior;
 
 const NOTIF_ICON = 'taskwarrior-logo';
 var taskMenuList = null;
+let Schema = null;
 /*
  * Class for widget task list menu
- * TODO check if optimization required
- * TODO make a filter system on tasklist
+ * TODO check if optimization required for long lists
  */
 const TaskwarriorListMenu = new Lang.Class({
     Name: 'Taskwarrior.ListMenu',
 
     _init: function(menu) {
         taskMenuList = menu;
+        Schema = Convenience.getSettings();
     },
 
     refresh: function() {
         let i;
-
+        let filter;
         // Rebuild completely the menu with updated data
         taskMenuList.removeAll();
 
-        // Display entry field for Adding Tasks
+        // Display entry field for adding tasks
         taskMenuList.addMenuItem(new TaskwarriorShellEntry());
 
-        let taskList = Taskwarrior.taskwarriorCmds[Taskwarrior.TASK_EXPORT](Taskwarrior.TASK_STATUS_PENDING);
+        // Display filter field for filtering task list
+        taskMenuList.addMenuItem(new TaskwarriorFilterEntry());
+
+        // Get task filter and export task list from taskwarrior
+        filter = Schema.get_string('filter');
+        let taskList = Taskwarrior.taskwarriorCmds[Taskwarrior.TASK_EXPORT](Taskwarrior.TASK_STATUS_PENDING
+            + Taskwarrior.SP + filter);
         // If nothing to display, just finish here
         if (typeof taskList === 'undefined' || taskList == Taskwarrior.TASK_ERROR) {
             return;
@@ -96,19 +104,7 @@ const TaskwarriorShellEntry = new Lang.Class({
         ShellEntry.addContextMenu(this._entry);
         this.actor.add_child(this._entry);
 
-        this._entry.clutter_text.connect('activate', Lang.bind(this, function (o, e) {
-
-            let text = o.get_text();
-            // Ensure no newlines in the data
-            text = text.replace('\n', ' ');
-            // Or leading and trailing whitespaces
-            text = text.replace(/^\s+/g, '').replace(/\s+$/g, '');
-            if (text == '') {
-                return true;
-            }
-            this.cmd(text);
-            return true;
-        }));
+        this._entry.clutter_text.connect('activate', Lang.bind(this, this._onActivate));
 
     },
 
@@ -116,8 +112,56 @@ const TaskwarriorShellEntry = new Lang.Class({
         let status = Taskwarrior.taskwarriorCmds[Taskwarrior.TASK_ADD](text);
         TaskwarriorListMenu.prototype.refresh();
         _userNotification(status, Taskwarrior.TASK_ADD, text);
-        // Reset type command
-        this._entry.text = '';
+    },
+
+    activate: function(event) {
+        // Allow mouse click to enter entry box without closing the menu
+        // TODO Allow pressing TAB to enter entry box event.get_key_symbol() == Clutter.KEY_Tab
+        if (event.type() == Clutter.EventType.BUTTON_RELEASE ) {
+            return;
+        }
+        this.parent(event);
+    },
+
+    _onActivate: function(o, e) {
+        let text = o.get_text();
+        // Ensure no newlines in the data
+        text = text.replace('\n', ' ');
+        // Or leading and trailing whitespaces
+        text = text.replace(/^\s+/g, '').replace(/\s+$/g, '');
+        if (text == '') {
+            return;
+        }
+        this.cmd(text);
+    }
+
+});
+
+/*
+ * Class for widget handling task filter
+ */
+const TaskwarriorFilterEntry = new Lang.Class({
+    Name: 'Taskwarrior.FilterEntry',
+    Extends: PopupMenu.PopupBaseMenuItem,
+
+    _init: function(params) {
+        this.parent(params);
+
+        this._filter = new St.Entry({ can_focus: true, x_expand: true , hint_text: _("Add filter ...") });
+        ShellEntry.addContextMenu(this._filter);
+        this.actor.add_child(this._filter);
+
+        let filter = Schema.get_string('filter');
+
+        if (filter != '') {
+            this._filter.text = (filter);
+        }
+
+        this._filter.clutter_text.connect('activate', Lang.bind(this, function (o, e) {
+            let newfilter = o.get_text();
+            Schema.set_string('filter', newfilter);
+            TaskwarriorListMenu.prototype.refresh();
+        }));
     },
 
     activate: function(event) {
@@ -326,7 +370,6 @@ const TaskButton = new Lang.Class({
 
     _onClicked: function() {
         let status = Taskwarrior.taskwarriorCmds[this.action](this.taskid);
-        log( this.actor.get_label(), status, this.action, this.taskdesc);
         TaskwarriorListMenu.prototype.refresh();
         _userNotification(status, this.action, this.taskdesc);
    },
@@ -337,7 +380,6 @@ const TaskButton = new Lang.Class({
             _(''),
             Lang.bind(this, function() {
                 let status = Taskwarrior.taskwarriorCmds[this.action](this.taskid);
-                log( this.actor.get_label(), status, this.action, this.taskdesc);
                 TaskwarriorListMenu.prototype.refresh();
                 _userNotification(status, this.action, this.taskdesc);
             })
@@ -352,7 +394,6 @@ const TaskButton = new Lang.Class({
             _(''),
             Lang.bind(this, function(text) {
                 let status = Taskwarrior.taskwarriorCmds[this.action](this.taskid, text);
-                log( this.actor.get_label(), status, this.action, this.taskdesc, text);
                 TaskwarriorListMenu.prototype.refresh();
                 _userNotification(status, this.action, this.taskdesc);
             })
@@ -408,7 +449,7 @@ const TaskModifyDialog = new Lang.Class({
 
         this.contentLayout.add(new St.Label({text: title}));
         this.contentLayout.add(new St.Label({text: message}));
-        this.modEntry = new St.Entry({style_class: 'task-entry'});
+        this.modEntry = new St.Entry({style_class: 'task-entry', hint_text: _("proj:blabla +tag1 +tag2 due:tomorrow")});
         this.contentLayout.add(this.modEntry);
         this.contentLayout.add(new St.Label({text: ''}));
 
@@ -424,7 +465,6 @@ const TaskModifyDialog = new Lang.Class({
     },
 
     _onOkButton: function() {
-        log(this.modEntry.get_text());
         this._callback(this.modEntry.get_text());
         this.close();
         taskMenuList.open();
@@ -433,9 +473,14 @@ const TaskModifyDialog = new Lang.Class({
 
 /*
  * Notify user of action performed
- * TODO only on failure ?
  */
 function _userNotification(status, action, desc) {
+
+    // Notify only on cmd failure
+    if (!status) {
+        return;
+    }
+
     let source = new MessageTray.Source("taskwarrior", NOTIF_ICON);
     let notif_title = !status ? "command " + action + " ok" : "command " + action + " failed";
     let notif_msg = "task - " + desc;

@@ -23,10 +23,14 @@
     color: #ff8500;
 }
 
-/* Task entries */
 .task-entry {
    border-width: 1px;
    border-color: #60b044;
+}
+
+.task-filter {
+    border-width: 1px;
+    border-color: #0069b0;
 }
 
 /* Generic buttons */
