@@ -147,7 +147,7 @@ const TaskwarriorFilterEntry = new Lang.Class({
     _init: function(params) {
         this.parent(params);
 
-        this._filter = new St.Entry({ can_focus: true, x_expand: true , hint_text: _("Add filter ...") });
+        this._filter = new St.Entry({ can_focus: true, style_class: 'task-entry', x_expand: true , hint_text: _("Add filter ...") });
         ShellEntry.addContextMenu(this._filter);
         this.actor.add_child(this._filter);
 
@@ -449,7 +449,7 @@ const TaskModifyDialog = new Lang.Class({
 
         this.contentLayout.add(new St.Label({text: title}));
         this.contentLayout.add(new St.Label({text: message}));
-        this.modEntry = new St.Entry({hint_text: _("...")});
+        this.modEntry = new St.Entry({ can_focus: true, style_class: 'task-entry', x_expand: true , hint_text: _("") });
         ShellEntry.addContextMenu(this.modEntry);
         this.contentLayout.add(this.modEntry);
         this.contentLayout.add(new St.Label({text: ''}));

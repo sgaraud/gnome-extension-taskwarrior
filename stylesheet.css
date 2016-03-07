@@ -1,20 +1,17 @@
 /* Labels format */
 .task-label {
-    /*font-weight: bold;*/
+    font-weight: bold;
     width: 60px;
-    /*text-align: center;*/
-    /*background-color: dimgray;*/
-    color: #b6cbe5;
+    color: #90b6ff;
 }
 .task-label-center {
-    /*font-weight: bold;*/
+    font-weight: bold;
     width: 65px;
     text-align: center;
-    /*background-color: dimgray;*/
-    color: #b6cbe5;
+    color: #90b6ff;
 }
 .task-label-data {
-    color: #e0ffc8;
+    color: #eee;
 }
 .task-label-data-red {
     color: #ff0000;
@@ -25,7 +22,7 @@
 
 .task-entry {
    border-width: 1px;
-   border-color: #60b044;
+   border-color: #8c8c8c;
 }
 
 .task-filter {
