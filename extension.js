@@ -114,8 +114,6 @@ const TaskMain = new Lang.Class({
         });
     },
 
-
-
     /*
      * Keybindings to open or close the menu - key can be set in the extension pref menu
      */
