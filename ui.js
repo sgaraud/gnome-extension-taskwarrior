@@ -116,7 +116,6 @@ const TaskwarriorShellEntry = new Lang.Class({
 
     activate: function(event) {
         // Allow mouse click to enter entry box without closing the menu
-        // TODO Allow pressing TAB to enter entry box event.get_key_symbol() == Clutter.KEY_Tab
         if (event.type() == Clutter.EventType.BUTTON_RELEASE ) {
             return;
         }
@@ -165,8 +164,6 @@ const TaskwarriorFilterEntry = new Lang.Class({
     },
 
     activate: function(event) {
-        // Allow mouse click to enter entry box without closing the menu
-        // TODO Allow pressing TAB to enter entry box event.get_key_symbol() == Clutter.KEY_Tab
         if (event.type() == Clutter.EventType.BUTTON_RELEASE ) {
             return;
         }
