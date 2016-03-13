@@ -38,6 +38,7 @@ const TASK_START = 'start';
 const TASK_STOP = 'stop';
 const TASK_VERSION = '--version';
 const TASK_STATUS_PENDING = 'status:pending';
+const TASK_NO_JSON_ARRAY = 'rc.json.array:off';
 const TASK_NO_CONFIRM = 'rc.confirmation:off';
 const TASK_ERROR = 1;
 

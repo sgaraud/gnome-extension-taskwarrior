@@ -61,7 +61,7 @@ const TaskwarriorListMenu = new Lang.Class({
         // Get task filter and export task list from taskwarrior
         filter = Schema.get_string('filter');
         let taskList = Taskwarrior.taskwarriorCmds[Taskwarrior.TASK_EXPORT](Taskwarrior.TASK_STATUS_PENDING
-            + Taskwarrior.SP + filter);
+            + Taskwarrior.SP + Taskwarrior.TASK_NO_JSON_ARRAY + Taskwarrior.SP + filter);
         // If nothing to display, just finish here
         if (typeof taskList === 'undefined' || taskList == Taskwarrior.TASK_ERROR) {
             return;
