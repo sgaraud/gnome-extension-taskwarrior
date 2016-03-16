@@ -19,13 +19,19 @@ This GNOME shell extension is enabling access to [Taskwarrior](https://taskwarri
  * More keybindings
  * Constant menu width
 
-### Screenshot
+### Screenshots
 
 > taskwarrior gnome shell extension.
 
-![taskwarrior gnome shell extension](taskwarriorgnomeshell.png?raw=true
+![taskwarrior gnome shell extension 01](taskwarriorgnomeshell1.png?raw=true
  "taskwarrior gnome shell extension")
- 
+
+![taskwarrior gnome shell extension 02](taskwarriorgnomeshell2.png?raw=true
+ "taskwarrior gnome shell extension")
+
+![taskwarrior gnome shell extension 03](taskwarriorgnomeshell3.png?raw=true
+ "taskwarrior gnome shell extension")
+
 ### Usage
 
 TODO
@@ -37,7 +43,7 @@ TODO
 The extension is available from the extensions.gnome.org website. Visit the following link for
 instructions.
 
-https://extensions.gnome.org/extension/
+https://extensions.gnome.org/extension/1052/taskwarrior-integration/
 
 #### From source
 
@@ -53,7 +59,7 @@ A Shell reload is required <code>Alt+F2 r Enter</code> and extension
 has to be enabled with *gnome-tweak-tool*
 ### Configuration 
 
-Few configuration options are available with *gnome-tweak-tool*.
+Configuration option currently available with *gnome-tweak-tool*.
 
 > taskwarrior gnome shell extension preferences.
 
