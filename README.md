@@ -17,6 +17,7 @@ This GNOME shell extension is enabling access to [Taskwarrior](https://taskwarri
 
 ### Upcoming Features
 
+ * Page system when too many tasks to display on screen
  * More customization through preferences menu
  * More keybindings
 
