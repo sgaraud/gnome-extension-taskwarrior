@@ -7,7 +7,7 @@
       <description>Key to toggle the taskwarrior menu</description>
     </key>
     <key name="max-task-description-line-length" type="i">
-      <default>160</default>
+      <default>120</default>
     </key>
     <key name="max-task-tags-line-length" type="i">
       <default>80</default>
