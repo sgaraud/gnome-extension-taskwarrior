@@ -23,11 +23,14 @@ const Lang = imports.lang;
 const ExtensionUtils = imports.misc.extensionUtils;
 const Me = ExtensionUtils.getCurrentExtension();
 const Convenience = Me.imports.convenience;
+const Params = imports.misc.params;
 
 const Gettext = imports.gettext.domain('taskwarrior-integration');
 const _ = Gettext.gettext;
 
 const TOGGLE_MENU = 'toggle-menu';
+const DESC_LINE_LENGTH = 'max-task-description-line-length';
+const TAG_LINE_LENGTH = 'max-task-tags-line-length';
 let Schema = null;
 
 function init() {
@@ -122,6 +125,56 @@ const TaskwarriorPrefsGrid = new GObject.Class({
         this._rownum++;
 
         return widget;
+    },
+
+    add_row: function(text, widget, wrap) {
+        let label = new Gtk.Label({
+            label: text,
+            hexpand: true,
+            halign: Gtk.Align.START
+        });
+        label.set_line_wrap(wrap || false);
+
+        this.attach(label, 0, this._rownum, 1, 1); // col, row, colspan, rowspan
+        this.attach(widget, 1, this._rownum, 1, 1);
+        this._rownum++;
+
+        return widget;
+    },
+
+    add_spin: function(label, key, adjustment_properties, type, spin_properties) {
+        adjustment_properties = Params.parse(adjustment_properties, {
+            lower: 0,
+            upper: 100,
+            step_increment: 100
+        });
+        let adjustment = new Gtk.Adjustment(adjustment_properties);
+
+        spin_properties = Params.parse(spin_properties, {
+            adjustment: adjustment,
+            numeric: true,
+            snap_to_ticks: true
+        }, true);
+        let spin_button = new Gtk.SpinButton(spin_properties);
+
+        if(type !== 'int') spin_button.set_digits(2);
+
+        let get_method = type === 'int' ? 'get_int' : 'get_double';
+        let set_method = type === 'int' ? 'set_int' : 'set_double';
+
+        spin_button.set_value(this._settings[get_method](key));
+        spin_button.connect('value-changed', Lang.bind(this, function(spin) {
+            let value;
+
+            if(type === 'int') value = spin.get_value_as_int();
+            else value = spin.get_value();
+
+            if(this._settings[get_method](key) !== value) {
+                this._settings[set_method](key, value);
+            }
+        }));
+
+        return this.add_row(label, spin_button, true);
     }
 });
 
@@ -135,6 +188,7 @@ const TaskwarriorIntegrationPrefsWidget = new GObject.Class({
         this.set_orientation(Gtk.Orientation.VERTICAL);
 
         let keybindings = this._get_keybindings_page();
+        let uiprefs = this._get_ui_page();
 
         let stack = new Gtk.Stack({transition_type: Gtk.StackTransitionType.SLIDE_LEFT_RIGHT,
             transition_duration: 500});
@@ -142,6 +196,7 @@ const TaskwarriorIntegrationPrefsWidget = new GObject.Class({
             stack: stack});
 
         stack.add_titled(keybindings.page, keybindings.name, keybindings.name);
+        stack.add_titled(uiprefs.page, uiprefs.name, uiprefs.name);
 
         this.add(stack_switcher);
         this.add(stack);
@@ -159,6 +214,33 @@ const TaskwarriorIntegrationPrefsWidget = new GObject.Class({
         page.add_item(keybindings_widget);
 
         return {name: name, page: page};
+    },
+
+    _get_ui_page: function() {
+        let name = _("UI prefs");
+        let page = new TaskwarriorPrefsGrid(Schema);
+
+        let adjustment_properties = {
+            lower: 1,
+            upper: 4000,
+            step_increment: 1
+        };
+        let task_desc_size = page.add_spin(
+            _("Max task description line length (char):"),
+            DESC_LINE_LENGTH,
+            adjustment_properties,
+            'int'
+        );
+
+        adjustment_properties.upper = 400;
+        let tag_list_size = page.add_spin(
+            _("Max tags list line length (char):"),
+            TAG_LINE_LENGTH,
+            adjustment_properties,
+            'int'
+        );
+
+        return {name: name, page: page };
     }
 });
 

@@ -30,6 +30,7 @@ const ExtensionUtils    = imports.misc.extensionUtils;
 const Me                = ExtensionUtils.getCurrentExtension();
 const Convenience       = Me.imports.convenience;
 const Taskwarrior       = Me.imports.taskwarrior;
+const Prefs             = Me.imports.prefs;
 
 const NOTIF_ICON = 'taskwarrior-logo';
 var taskMenuList = null;
@@ -173,15 +174,14 @@ const TaskwarriorFilterEntry = new Lang.Class({
 });
 
 /*
- * Class for widget handling core display information (task description and done button)
+ * Class for widget handling core display information (task description and done/start buttons)
  */
 const TaskwarriorMenuItem = new Lang.Class({
     Name: 'Taskwarrior.MenuItem',
     Extends: PopupMenu.PopupSubMenuMenuItem,
 
     _init: function(task) {
-        this.parent(task.description);
-
+        this.parent(taskDescriptionWrap(task.description, Schema.get_int(Prefs.DESC_LINE_LENGTH)));
 
         //this.actor.add_style_class_name('task-label-data-red');
 
@@ -247,7 +247,7 @@ const TaskwarriorMenuAdvancedItem1 = new Lang.Class({
         this.label_tags = new St.Label({ text: Taskwarrior.LABEL_TAGS, style_class: 'task-label-center' });
         this.actor.add_child(this.label_tags);
         if (typeof task.tags != 'undefined') {
-            this.label_tags_value = new St.Label({ text: task.tags.toString(), style_class: 'task-label-data'  });
+            this.label_tags_value = new St.Label({ text: taskTagsListWrap(task.tags.toString(), Schema.get_int(Prefs.TAG_LINE_LENGTH)), style_class: 'task-label-data'  });
         }
         else {
             this.label_tags_value = new St.Label({ text: Taskwarrior.LABEL_EMPTY, style_class: 'task-label-data'  });
@@ -485,4 +485,26 @@ function _userNotification(status, action, desc) {
     let notification = new MessageTray.Notification(source, notif_title, notif_msg);
     Main.messageTray.add(source);
     source.notify(notification);
+}
+
+/*
+ * Function for making wordwrap of long task description
+ * fixes https://github.com/sgaraud/gnome-extension-taskwarrior/issues/7
+ * inspired by - james padolsey
+ */
+function taskDescriptionWrap(str, width) {
+
+    if (!str) { return str; }
+    var regex = '.{1,' +width+ '}(\\s|$)' + ('|\\S+?(\\s|$)');
+    return str.match(RegExp(regex, 'g')).join('\n');
+}
+
+/*
+ * Function for making wordwrap of comma separated tag list
+ */
+function taskTagsListWrap(str, width) {
+
+    if (!str) { return str; }
+    var regex = '.{1,' +width+ '}(,|$)' + ('|[^,]+?(,|$)');
+    return str.match(RegExp(regex, 'g')).join('\n');
 }

@@ -6,6 +6,12 @@
       <summary>Toggle the menu</summary>
       <description>Key to toggle the taskwarrior menu</description>
     </key>
+    <key name="max-task-description-line-length" type="i">
+      <default>160</default>
+    </key>
+    <key name="max-task-tags-line-length" type="i">
+      <default>80</default>
+    </key>
     <key name="filter" type="s">
       <default>''</default>
       <summary>Filter for task list</summary>
