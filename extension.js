@@ -3,20 +3,16 @@
  * https://github.com/sgaraud/gnome-extension-taskwarrior
  * 
  * Copyright (C) 2016 Sylvain Garaud
- *
- * This file is part of Taskwarrior Integration with Gnome Shell extension.
- * Taskwarrior Integration with Gnome Shell extension is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * Taskwarrior Integration with Gnome Shell extension is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Taskwarrior Integration with Gnome Shell extension.  If not, see <http://www.gnu.org/licenses/>.
+ * This program is free software: you can redistribute it and/or modify it under 
+ * the terms of the GNU General Public License as published by the Free Software 
+ * Foundation, either version 2 of the License, or (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful, but WITHOUT ANY 
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A 
+ * PARTICULAR PURPOSE. See the GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License along with this 
+ * program. If not, see http://www.gnu.org/licenses/.
  * 
  */
 
@@ -28,6 +24,7 @@ const Main      = imports.ui.main;
 const PanelMenu = imports.ui.panelMenu;
 const PopupMenu = imports.ui.popupMenu;
 const Util      = imports.misc.util;
+const Gio       = imports.gi.Gio
 
 const ExtensionUtils    = imports.misc.extensionUtils;
 const Me                = ExtensionUtils.getCurrentExtension();
@@ -56,6 +53,7 @@ const TaskMain = new Lang.Class({
         this.parent(0.0, _("Taskwarrior Extension"));
         let nbox = new St.BoxLayout({style_class: 'panel-status-menu-box'});
         this.icon = new St.Icon({icon_name: INDICATOR_ICON, icon_size : 18, style_class: 'system-status-icon'});
+        this.icon.gicon = Gio.icon_new_for_string(Me.path + '/icons/' + INDICATOR_ICON + '.png')
         nbox.add_child(this.icon);
         this.actor.add_child(nbox);
         this.actor.show();
