@@ -28,6 +28,7 @@ const Main      = imports.ui.main;
 const PanelMenu = imports.ui.panelMenu;
 const PopupMenu = imports.ui.popupMenu;
 const Util      = imports.misc.util;
+const Gio       = imports.gi.Gio
 
 const ExtensionUtils    = imports.misc.extensionUtils;
 const Me                = ExtensionUtils.getCurrentExtension();
@@ -56,6 +57,7 @@ const TaskMain = new Lang.Class({
         this.parent(0.0, _("Taskwarrior Extension"));
         let nbox = new St.BoxLayout({style_class: 'panel-status-menu-box'});
         this.icon = new St.Icon({icon_name: INDICATOR_ICON, icon_size : 18, style_class: 'system-status-icon'});
+        this.icon.gicon = Gio.icon_new_for_string(Me.path + '/icons/' + INDICATOR_ICON + '.png')
         nbox.add_child(this.icon);
         this.actor.add_child(nbox);
         this.actor.show();
