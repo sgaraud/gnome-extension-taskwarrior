@@ -23,6 +23,7 @@
 const GLib = imports.gi.GLib;
 const Lang = imports.lang;
 
+const ByteArray = imports.byteArray;
 
 const ExtensionUtils = imports.misc.extensionUtils;
 const Me = ExtensionUtils.getCurrentExtension();
@@ -92,7 +93,7 @@ function _exportTasks (filter) {
     try {
         //[ok: Boolean, standard_output: ByteArray, standard_error: ByteArray, exit_status: Number(gint)]
         let [res, out, err, status] = GLib.spawn_command_line_sync(TASK_BIN + SP + TASK_EXPORT + SP + filter);
-        let lines = out.toString().split('\n');
+        let lines = ByteArray.toString(out).split('\n');
 
         for (let i = 0; i < lines.length; i++) {
             // comma terminated in old taskwarrior versions
@@ -201,7 +202,7 @@ function _deleteTask(uuid) {
 function _getVersion() {
     try {
         let [res, out, err, status] = GLib.spawn_command_line_sync(TASK_BIN + SP + TASK_VERSION);
-        return out.toString().split('.');
+        return ByteArray.toString(out).split('.');
     } catch (err) {
         printerr(err);
         return TASK_ERROR;
