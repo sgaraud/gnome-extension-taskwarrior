@@ -3,20 +3,16 @@
  * https://github.com/sgaraud/gnome-extension-taskwarrior
  *
  * Copyright (C) 2016 Sylvain Garaud
+ * This program is free software: you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License as published by the Free Software
+ * Foundation, either version 2 of the License, or (at your option) any later version.
  *
- * This file is part of Taskwarrior Integration with Gnome Shell extension.
- * Taskwarrior Integration with Gnome Shell extension is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * This program is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+ * PARTICULAR PURPOSE. See the GNU General Public License for more details.
  *
- * Taskwarrior Integration with Gnome Shell extension is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Taskwarrior Integration with Gnome Shell extension.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU General Public License along with this
+ * program. If not, see http://www.gnu.org/licenses/.
  *
  */
 
@@ -29,6 +25,7 @@ const Clutter       = imports.gi.Clutter;
 const MessageTray   = imports.ui.messageTray;
 const ModalDialog   = imports.ui.modalDialog;
 const BoxPointer    = imports.ui.boxpointer;
+const GObject	    = imports.gi.GObject;
 
 const ExtensionUtils    = imports.misc.extensionUtils;
 const Me                = ExtensionUtils.getCurrentExtension();
@@ -43,15 +40,13 @@ let Schema = null;
  * Class for widget task list menu
  * TODO check if optimization required for long lists
  */
-const TaskwarriorListMenu = new Lang.Class({
-    Name: 'Taskwarrior.ListMenu',
-
-    _init: function(menu) {
+class TaskwarriorListMenu_ {
+    constructor(menu) {
         taskMenuList = menu;
         Schema = Convenience.getSettings();
-    },
+    }
 
-    refresh: function() {
+    refresh() {
         let i;
         let filter;
         // Rebuild completely the menu with updated data
@@ -92,42 +87,41 @@ const TaskwarriorListMenu = new Lang.Class({
             taskMenuList.addMenuItem(item);
         }
     }
-});
-
+}
+var TaskwarriorListMenu = TaskwarriorListMenu_;
 
 /*
  * Class for widget handling add new task field
  */
-const TaskwarriorShellEntry = new Lang.Class({
-    Name: 'Taskwarrior.ShellEntry',
-    Extends: PopupMenu.PopupBaseMenuItem,
-
-    _init: function(params) {
-        this.parent(params);
+var TaskwarriorShellEntry = GObject.registerClass(
+{GTypeName: 'TaskwarriorShellEntry'},
+class TaskwarriorShellEntry extends PopupMenu.PopupBaseMenuItem {
+    _init(params) {
+        super._init();
 
         this._entry = new St.Entry({ can_focus: true, style_class: 'task-entry', x_expand: true , hint_text: _("Add task ...") });
         ShellEntry.addContextMenu(this._entry);
-        this.actor.add_child(this._entry);
+        this.add_child(this._entry);
 
         this._entry.clutter_text.connect('activate', Lang.bind(this, this._onActivate));
 
-    },
+    }
 
-    cmd: function(text) {
+    cmd(text) {
         let status = Taskwarrior.taskwarriorCmds[Taskwarrior.TASK_ADD](text);
         TaskwarriorListMenu.prototype.refresh();
         _userNotification(status, Taskwarrior.TASK_ADD, text);
-    },
+    }
 
-    activate: function(event) {
+    activate(event) {
         // Allow mouse click to enter entry box without closing the menu
         if (event.type() == Clutter.EventType.BUTTON_RELEASE ) {
             return;
         }
-        this.parent(event);
-    },
+        super.activate(event);
+    }
 
-    _onActivate: function(o, e) {
+    _onActivate(o, e) {
         let text = o.get_text();
         // Ensure no newlines in the data
         text = text.replace('\n', ' ');
@@ -144,16 +138,15 @@ const TaskwarriorShellEntry = new Lang.Class({
 /*
  * Class for widget handling task filter
  */
-const TaskwarriorFilterEntry = new Lang.Class({
-    Name: 'Taskwarrior.FilterEntry',
-    Extends: PopupMenu.PopupBaseMenuItem,
-
-    _init: function(params) {
-        this.parent(params);
+var TaskwarriorFilterEntry = GObject.registerClass(
+{GTypeName: 'TaskwarriorFilterEntry'},
+class TaskwarriorFilterEntry extends PopupMenu.PopupBaseMenuItem {
+    _init(params) {
+        super._init();
 
         this._filter = new St.Entry({ can_focus: true, style_class: 'task-entry', x_expand: true , hint_text: _("Add filter ...") });
         ShellEntry.addContextMenu(this._filter);
-        this.actor.add_child(this._filter);
+        this.add_child(this._filter);
 
         let filter = Schema.get_string('filter');
 
@@ -166,13 +159,13 @@ const TaskwarriorFilterEntry = new Lang.Class({
             Schema.set_string('filter', newfilter);
             TaskwarriorListMenu.prototype.refresh();
         }));
-    },
+    }
 
-    activate: function(event) {
+    activate(event) {
         if (event.type() == Clutter.EventType.BUTTON_RELEASE ) {
             return;
         }
-        this.parent(event);
+        super.activate(event);
     }
 
 });
@@ -180,33 +173,32 @@ const TaskwarriorFilterEntry = new Lang.Class({
 /*
  * Class for widget handling core display information (task description and done/start buttons)
  */
-const TaskwarriorMenuItem = new Lang.Class({
-    Name: 'Taskwarrior.MenuItem',
-    Extends: PopupMenu.PopupSubMenuMenuItem,
-
-    _init: function(task) {
-        this.parent(taskDescriptionWrap(task.description, Schema.get_int(Prefs.DESC_LINE_LENGTH)));
+var TaskwarriorMenuItem = GObject.registerClass(
+{GTypeName: 'TaskwarriorMenuItem'},
+class TaskwarriorMenuItem extends PopupMenu.PopupSubMenuMenuItem {
+    _init(task) {
+        super._init(taskDescriptionWrap(task.description, Schema.get_int(Prefs.DESC_LINE_LENGTH)));
 
         //this.actor.add_style_class_name('task-label-data-red');
 
         // Remove some original widget parts for rebuilding with the extra buttons
         this._triangleBin.remove_child(this._triangle);
-        this.actor.remove_child(this._triangleBin);
+        this.remove_child(this._triangleBin);
 
         this._button_done = new TaskButton(Taskwarrior.TASK_DONE, task, 'task-button-done');
-        this.actor.add_child(this._button_done.actor);
+        this.add_child(this._button_done);
 
         if (typeof task.start != 'undefined') {
             this._button_stop = new TaskButton(Taskwarrior.TASK_STOP, task, 'task-button-danger');
-            this.actor.add_child(this._button_stop.actor);
+            this.add_child(this._button_stop);
         }
         else {
             this._button_start = new TaskButton(Taskwarrior.TASK_START, task, 'task-button');
-            this.actor.add_child(this._button_start.actor);
+            this.add_child(this._button_start);
         }
 
         this._triangleBin.add_child(this._triangle);
-        this.actor.add_child(this._triangleBin);
+        this.add_child(this._triangleBin);
 
     }
 });
@@ -214,15 +206,13 @@ const TaskwarriorMenuItem = new Lang.Class({
 /*
  * Class for widget handling advanced display information and advanced buttons like delete, etc ...
  */
-const TaskwarriorMenuAdvancedItem1 = new Lang.Class({
-    Name: 'Taskwarrior.MenuAdvancedItem1',
-    Extends: PopupMenu.PopupBaseMenuItem,
-
-    _init: function(task) {
-        this.parent();
+var TaskwarriorMenuAdvancedItem1 = GObject.registerClass({GTypeName: 'TaskwarriorMenuAdvancedItem1'},
+class TaskwarriorMenuAdvancedItem1 extends PopupMenu.PopupBaseMenuItem {
+    _init(task) {
+        super._init();
 
         this.label_priority = new St.Label({ text: Taskwarrior.LABEL_PRIORITY, style_class: 'task-label' });
-        this.actor.add_child(this.label_priority);
+        this.add_child(this.label_priority);
         if (typeof task.priority != 'undefined') {
             let style = 'task-label-data';
             if ( task.priority == 'H') {
@@ -236,68 +226,66 @@ const TaskwarriorMenuAdvancedItem1 = new Lang.Class({
         else {
             this.label_priority_value = new St.Label({ text: Taskwarrior.LABEL_EMPTY, style_class: 'task-label-data' });
         }
-        this.actor.add_child(this.label_priority_value);
+        this.add_child(this.label_priority_value);
 
         this.label_project = new St.Label({ text: Taskwarrior.LABEL_PROJECT, style_class: 'task-label-center' });
-        this.actor.add_child(this.label_project);
+        this.add_child(this.label_project);
         if (typeof task.project != 'undefined') {
             this.label_project_value = new St.Label({ text: task.project, style_class: 'task-label-data' });
         }
         else {
             this.label_project_value = new St.Label({ text: Taskwarrior.LABEL_EMPTY, style_class: 'task-label-data'  });
         }
-        this.actor.add_child(this.label_project_value);
+        this.add_child(this.label_project_value);
 
         this.label_tags = new St.Label({ text: Taskwarrior.LABEL_TAGS, style_class: 'task-label-center' });
-        this.actor.add_child(this.label_tags);
+        this.add_child(this.label_tags);
         if (typeof task.tags != 'undefined') {
             this.label_tags_value = new St.Label({ text: taskTagsListWrap(task.tags.toString(), Schema.get_int(Prefs.TAG_LINE_LENGTH)), style_class: 'task-label-data'  });
         }
         else {
             this.label_tags_value = new St.Label({ text: Taskwarrior.LABEL_EMPTY, style_class: 'task-label-data'  });
         }
-        this.actor.add_child(this.label_tags_value);
+        this.add_child(this.label_tags_value);
     }
 });
 
 /*
  * Class for widget handling advanced display information and advanced buttons like delete, etc ...
  */
-const TaskwarriorMenuAdvancedItem2 = new Lang.Class({
-    Name: 'Taskwarrior.MenuAdvancedItem2',
-    Extends: PopupMenu.PopupBaseMenuItem,
-
-    _init: function(task) {
-        this.parent();
+var TaskwarriorMenuAdvancedItem2 = GObject.registerClass({GTypeName: 'TaskwarriorMenuAdvancedItem2'},
+class TaskwarriorMenuAdvancedItem2 extends PopupMenu.PopupBaseMenuItem {
+    _init(task) {
+        super._init();
 
         this.label_entered = new St.Label({ text: Taskwarrior.LABEL_ENTERED, style_class: 'task-label' });
-        this.actor.add_child(this.label_entered);
+        this.add_child(this.label_entered);
         if (typeof task.entry != 'undefined') {
             this.label_entered_value = new St.Label({ text: Taskwarrior._checkDate(task.entry),
                 style_class: 'task-label-data'  });
-            this.actor.add_child(this.label_entered_value);
+            this.add_child(this.label_entered_value);
         }
-
-        let expander = new St.Bin({ style_class: 'popup-menu-item-expander' });
-        this.actor.add(expander, { expand: true });
+	
+	// FIXME - Something is very wrong here!
+        //let expander = new St.Bin({ style_class: 'popup-menu-item-expander' });
+        //this.add(expander, { expand: true });
 
         this._button_del = new TaskButton(Taskwarrior.TASK_DELETE, task, 'task-button-danger');
-        this.actor.add_child(this._button_del.actor);
+        this.add_child(this._button_del);
     }
 });
 
 /*
  * Class for widget handling advanced display information and advanced buttons like delete, etc ...
  */
-const TaskwarriorMenuAdvancedItem3 = new Lang.Class({
-    Name: 'Taskwarrior.MenuAdvancedItem3',
-    Extends: PopupMenu.PopupBaseMenuItem,
-
-    _init: function(task) {
-        this.parent();
+var TaskwarriorMenuAdvancedItem3 = GObject.registerClass(
+{GTypeName: 'TaskwarriorMenuAdvancedItem3'},
+class TaskwarriorMenuAdvancedItem3 extends PopupMenu.PopupBaseMenuItem{
+    _init(task) {
+        super._init();
 
         this.label_start = new St.Label({ text: Taskwarrior.LABEL_START, style_class: 'task-label' });
-        this.actor.add_child(this.label_start);
+        this.add_child(this.label_start);
         if (typeof task.start != 'undefined') {
             this.label_start_value = new St.Label({ text: Taskwarrior._checkDate(task.start),
                 style_class: 'task-label-data'  });
@@ -305,13 +293,14 @@ const TaskwarriorMenuAdvancedItem3 = new Lang.Class({
         else {
             this.label_start_value = new St.Label({ text: Taskwarrior.LABEL_EMPTY, style_class: 'task-label-data' });
         }
-        this.actor.add_child(this.label_start_value);
-
-        let expander = new St.Bin({ style_class: 'popup-menu-item-expander' });
-        this.actor.add(expander, { expand: true });
+        this.add_child(this.label_start_value);
+	
+	// FIXME Something is very wrong here!!
+        //let expander = new St.Bin({ style_class: 'popup-menu-item-expander' });
+        //this.add(expander, { expand: true });
 
         this._button_mod = new TaskButton(Taskwarrior.TASK_MODIFY, task, 'task-button');
-        this.actor.add_child(this._button_mod.actor);
+        this.add_child(this._button_mod);
 
     }
 });
@@ -320,15 +309,13 @@ const TaskwarriorMenuAdvancedItem3 = new Lang.Class({
 /*
  * Class for widget handling advanced display information and advanced buttons like delete, etc ...
  */
-const TaskwarriorMenuAdvancedItem4 = new Lang.Class({
-    Name: 'Taskwarrior.MenuAdvancedItem4',
-    Extends: PopupMenu.PopupBaseMenuItem,
-
-    _init: function(task) {
-        this.parent();
+var TaskwarriorMenuAdvancedItem4 = GObject.registerClass({GTypeName: 'TaskwarriorMenuAdvancedItem4'},
+class TaskwarriorMenuAdvancedItem4 extends PopupMenu.PopupBaseMenuItem {
+    _init(task) {
+        super._init();
 
         this.label_due = new St.Label({ text: Taskwarrior.LABEL_DUE, style_class: 'task-label' });
-        this.actor.add_child(this.label_due);
+        this.add_child(this.label_due);
         if (typeof task.due != 'undefined') {
             this.label_due_value = new St.Label({ text: Taskwarrior._checkDate(task.due),
                 style_class: 'task-label-data'  });
@@ -337,7 +324,7 @@ const TaskwarriorMenuAdvancedItem4 = new Lang.Class({
         else {
             this.label_due_value = new St.Label({ text: Taskwarrior.LABEL_EMPTY, style_class: 'task-label-data' });
         }
-        this.actor.add_child(this.label_due_value);
+        this.add_child(this.label_due_value);
     }
 });
 
@@ -345,37 +332,36 @@ const TaskwarriorMenuAdvancedItem4 = new Lang.Class({
 /*
  * Button class to call various actions
  */
-const TaskButton = new Lang.Class({
-    Name: 'Task.Button',
-    extends: 'Button',
-
-    _init: function(text, task, style) {
+var TaskButton = GObject.registerClass(
+{GTypeName: 'TaskButton'},
+class TaskButton extends St.Button {
+   _init (text, task, style) {
+        super._init({ reactive: true, can_focus: true, track_hover: true, style_class: style, label: text });
         this.taskid = task.uuid;
         this.taskdesc = task.description;
-        this.actor = new St.Button({ reactive: true, can_focus: true, track_hover: true, style_class: style, label: text });
-        this.actor.get_child().single_line_mode = true;
+        this.get_child().single_line_mode = true;
 
-        this.action = Taskwarrior.taskwarriorCmds.hasOwnProperty(this.actor.get_label()) ? this.actor.get_label() : "default";
+        this.action = Taskwarrior.taskwarriorCmds.hasOwnProperty(this.get_label()) ? this.get_label() : "default";
 
 
         if (this.action === Taskwarrior.TASK_DELETE){
-            this.actor.connect('clicked', Lang.bind(this, this._onConfirmed));
+            this.connect('clicked', Lang.bind(this, this._onConfirmed));
         }
         else if (this.action === Taskwarrior.TASK_MODIFY){
-            this.actor.connect('clicked', Lang.bind(this, this._onModified));
+            this.connect('clicked', Lang.bind(this, this._onModified));
         }
         else {
-            this.actor.connect('clicked', Lang.bind(this, this._onClicked));
+            this.connect('clicked', Lang.bind(this, this._onClicked));
         }
-    },
+    }
 
-    _onClicked: function() {
+    _onClicked() {
         let status = Taskwarrior.taskwarriorCmds[this.action](this.taskid);
         TaskwarriorListMenu.prototype.refresh();
         _userNotification(status, this.action, this.taskdesc);
-   },
+   }
 
-    _onConfirmed: function() {
+    _onConfirmed() {
         let confirmDialog = new TaskConfirmDialog(
             _('Are you sure you want to delete the task?'),
             _(''),
@@ -387,9 +373,9 @@ const TaskButton = new Lang.Class({
         );
         taskMenuList.close();
         confirmDialog.open();
-    },
+    }
 
-    _onModified: function() {
+    _onModified() {
         let modifyDialog = new TaskModifyDialog(
             _('Modify the task attributes'),
             _(''),
@@ -407,12 +393,11 @@ const TaskButton = new Lang.Class({
 /*
  * Prompt dialog to confirm command before execution
  */
-const TaskConfirmDialog = new Lang.Class({
-    Name: 'Task.Confirm.Dialog',
-    Extends: ModalDialog.ModalDialog,
-
-    _init: function(title, message, callback) {
-        this.parent();
+var TaskConfirmDialog = GObject.registerClass(
+{GTypeName: 'TaskConfirmDialog'},
+class TaskConfirmDialog extends ModalDialog.ModalDialog {
+    _init(title, message, callback) {
+        super._init();
         this._callback = callback;
 
         this.contentLayout.add(new St.Label({text: title}));
@@ -422,14 +407,14 @@ const TaskConfirmDialog = new Lang.Class({
             { label: _('Cancel'), action: Lang.bind(this, this._onCancelButton), key: Clutter.Escape},
             { label: _('Ok'), action: Lang.bind(this, this._onOkButton), key: Clutter.Return }
         ]);
-    },
+    }
 
-    _onCancelButton: function() {
+    _onCancelButton() {
         this.close();
         taskMenuList.open();
-    },
+    }
 
-    _onOkButton: function() {
+    _onOkButton() {
         this._callback();
         this.close();
         taskMenuList.open();
@@ -440,12 +425,11 @@ const TaskConfirmDialog = new Lang.Class({
 /*
  * Prompt dialog to modify task attributes
  */
-const TaskModifyDialog = new Lang.Class({
-    Name: 'Task.Modify.Dialog',
-    Extends: ModalDialog.ModalDialog,
-
-    _init: function(title, message, callback) {
-        this.parent();
+var TaskModifyDialog = GObject.registerClass(
+{GTypeName: 'TaskModifyDialog'},
+class TaskModifyDialog extends ModalDialog.ModalDialog{
+   _init (title, message, callback) {
+        super._init();
         this._callback = callback;
 
         this.contentLayout.add(new St.Label({text: title}));
@@ -459,14 +443,14 @@ const TaskModifyDialog = new Lang.Class({
             { label: _('Cancel'), action: Lang.bind(this, this._onCancelButton), key: Clutter.Escape},
             { label: _('Ok'), action: Lang.bind(this, this._onOkButton), key: Clutter.Return }
         ]);
-    },
+    }
 
-    _onCancelButton: function() {
+    _onCancelButton() {
         this.close();
         taskMenuList.open();
-    },
+    }
 
-    _onOkButton: function() {
+    _onOkButton() {
         this._callback(this.modEntry.get_text());
         this.close();
         taskMenuList.open();

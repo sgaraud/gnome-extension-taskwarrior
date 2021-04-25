@@ -32,9 +32,9 @@ const Params = imports.misc.params;
 const Gettext = imports.gettext.domain('taskwarrior-integration');
 const _ = Gettext.gettext;
 
-const TOGGLE_MENU = 'toggle-menu';
-const DESC_LINE_LENGTH = 'max-task-description-line-length';
-const TAG_LINE_LENGTH = 'max-task-tags-line-length';
+var TOGGLE_MENU = 'toggle-menu';
+var DESC_LINE_LENGTH = 'max-task-description-line-length';
+var TAG_LINE_LENGTH = 'max-task-tags-line-length';
 let Schema = null;
 
 function init() {

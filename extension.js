@@ -59,8 +59,8 @@ const TaskMain = new Lang.Class({
         this.icon = new St.Icon({icon_name: INDICATOR_ICON, icon_size : 18, style_class: 'system-status-icon'});
         this.icon.gicon = Gio.icon_new_for_string(Me.path + '/icons/' + INDICATOR_ICON + '.png')
         nbox.add_child(this.icon);
-        this.actor.add_child(nbox);
-        this.actor.show();
+        this.add_child(nbox);
+        this.show();
 
         // Bind menu opening to user defined keyboard shortcut
         this.add_keybindings();
@@ -69,7 +69,7 @@ const TaskMain = new Lang.Class({
 
         // Check taskwarrior is available on host and version is ok
         if (this._verifyTaskwarriorVersion(Taskwarrior.TASKWARRIOR_COMPAT)) {
-            this.actorId = this.actor.connect('button-press-event', Lang.bind(this, this._mainUi));
+            this.actorId = this.connect('button-press-event', Lang.bind(this, this._mainUi));
             // Get task list and build ui menu
             this._mainUi();
         }
@@ -152,7 +152,7 @@ const TaskMain = new Lang.Class({
             Schema.disconnect(this.keybindingChangedId);
         }
         if (this.actorId) {
-            this.actor.disconnect(this.actorId);
+            this.disconnect(this.actorId);
         }
         if (this.goToWebsiteId) {
             this.goToWebsite.disconnect(this.goToWebsiteId);

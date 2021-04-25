@@ -23,36 +23,37 @@
 const GLib = imports.gi.GLib;
 const Lang = imports.lang;
 
+const ByteArray = imports.byteArray;
 
 const ExtensionUtils = imports.misc.extensionUtils;
 const Me = ExtensionUtils.getCurrentExtension();
 const Convenience = Me.imports.convenience;
 
-const TASKWARRIOR_COMPAT = [2,3,0];
+var TASKWARRIOR_COMPAT = [2,3,0];
 
-const SP = " ";
-const TASK_WEBSITE = 'https://taskwarrior.org/download/';
-const TASK_BIN = 'task';
-const TASK_EXPORT = 'export';
-const TASK_ADD = 'add';
-const TASK_DONE = 'done';
-const TASK_DELETE = 'delete';
-const TASK_MODIFY = 'modify';
-const TASK_START = 'start';
-const TASK_STOP = 'stop';
-const TASK_VERSION = '--version';
-const TASK_STATUS_PENDING = 'status:pending';
-const TASK_NO_JSON_ARRAY = 'rc.json.array:off';
-const TASK_NO_CONFIRM = 'rc.confirmation:off';
-const TASK_ERROR = 1;
+var SP = " ";
+var TASK_WEBSITE = 'https://taskwarrior.org/download/';
+var TASK_BIN = 'task';
+var TASK_EXPORT = 'export';
+var TASK_ADD = 'add';
+var TASK_DONE = 'done';
+var TASK_DELETE = 'delete';
+var TASK_MODIFY = 'modify';
+var TASK_START = 'start';
+var TASK_STOP = 'stop';
+var TASK_VERSION = '--version';
+var TASK_STATUS_PENDING = 'status:pending';
+var TASK_NO_JSON_ARRAY = 'rc.json.array:off';
+var TASK_NO_CONFIRM = 'rc.confirmation:off';
+var TASK_ERROR = 1;
 
-const LABEL_EMPTY = "...";
-const LABEL_PROJECT = "project";
-const LABEL_PRIORITY = "priority";
-const LABEL_ENTERED = "created";
-const LABEL_START = "started";
-const LABEL_DUE = "due";
-const LABEL_TAGS = "tags";
+var LABEL_EMPTY = "...";
+var LABEL_PROJECT = "project";
+var LABEL_PRIORITY = "priority";
+var LABEL_ENTERED = "created";
+var LABEL_START = "started";
+var LABEL_DUE = "due";
+var LABEL_TAGS = "tags";
 
 /*
  * Dispatch table for possible cmd towards taskwarrior
@@ -68,9 +69,8 @@ var taskwarriorCmds = {
     default: function () { printerr("unknown taskwarriorCmds"); }
 };
 
-const Task = new Lang.Class({
-    Name: 'Task',
-    _init: function (task) {
+class Task {
+    constructor(task) {
         this.uuid = task.uuid;
         this.id = task.id;
         this.description = task.description;
@@ -83,7 +83,7 @@ const Task = new Lang.Class({
         this.project = task.project;
         this.tags = task.tags;
     }
-});
+}
 
 /*
  * Function to export pending task list from Taskwarrior.
@@ -93,7 +93,7 @@ function _exportTasks (filter) {
     try {
         //[ok: Boolean, standard_output: ByteArray, standard_error: ByteArray, exit_status: Number(gint)]
         let [res, out, err, status] = GLib.spawn_command_line_sync(TASK_BIN + SP + TASK_EXPORT + SP + filter);
-        let lines = out.toString().split('\n');
+        let lines = ByteArray.toString(out).split('\n');
 
         for (let i = 0; i < lines.length; i++) {
             // comma terminated in old taskwarrior versions
@@ -202,7 +202,7 @@ function _deleteTask(uuid) {
 function _getVersion() {
     try {
         let [res, out, err, status] = GLib.spawn_command_line_sync(TASK_BIN + SP + TASK_VERSION);
-        return out.toString().split('.');
+        return ByteArray.toString(out).split('.');
     } catch (err) {
         printerr(err);
         return TASK_ERROR;
