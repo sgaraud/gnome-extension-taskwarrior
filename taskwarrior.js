@@ -29,31 +29,31 @@ const ExtensionUtils = imports.misc.extensionUtils;
 const Me = ExtensionUtils.getCurrentExtension();
 const Convenience = Me.imports.convenience;
 
-const TASKWARRIOR_COMPAT = [2,3,0];
+var TASKWARRIOR_COMPAT = [2,3,0];
 
-const SP = " ";
-const TASK_WEBSITE = 'https://taskwarrior.org/download/';
-const TASK_BIN = 'task';
-const TASK_EXPORT = 'export';
-const TASK_ADD = 'add';
-const TASK_DONE = 'done';
-const TASK_DELETE = 'delete';
-const TASK_MODIFY = 'modify';
-const TASK_START = 'start';
-const TASK_STOP = 'stop';
-const TASK_VERSION = '--version';
-const TASK_STATUS_PENDING = 'status:pending';
-const TASK_NO_JSON_ARRAY = 'rc.json.array:off';
-const TASK_NO_CONFIRM = 'rc.confirmation:off';
-const TASK_ERROR = 1;
+var SP = " ";
+var TASK_WEBSITE = 'https://taskwarrior.org/download/';
+var TASK_BIN = 'task';
+var TASK_EXPORT = 'export';
+var TASK_ADD = 'add';
+var TASK_DONE = 'done';
+var TASK_DELETE = 'delete';
+var TASK_MODIFY = 'modify';
+var TASK_START = 'start';
+var TASK_STOP = 'stop';
+var TASK_VERSION = '--version';
+var TASK_STATUS_PENDING = 'status:pending';
+var TASK_NO_JSON_ARRAY = 'rc.json.array:off';
+var TASK_NO_CONFIRM = 'rc.confirmation:off';
+var TASK_ERROR = 1;
 
-const LABEL_EMPTY = "...";
-const LABEL_PROJECT = "project";
-const LABEL_PRIORITY = "priority";
-const LABEL_ENTERED = "created";
-const LABEL_START = "started";
-const LABEL_DUE = "due";
-const LABEL_TAGS = "tags";
+var LABEL_EMPTY = "...";
+var LABEL_PROJECT = "project";
+var LABEL_PRIORITY = "priority";
+var LABEL_ENTERED = "created";
+var LABEL_START = "started";
+var LABEL_DUE = "due";
+var LABEL_TAGS = "tags";
 
 /*
  * Dispatch table for possible cmd towards taskwarrior
