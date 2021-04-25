@@ -68,9 +68,8 @@ var taskwarriorCmds = {
     default: function () { printerr("unknown taskwarriorCmds"); }
 };
 
-const Task = new Lang.Class({
-    Name: 'Task',
-    _init: function (task) {
+class Task {
+    constructor(task) {
         this.uuid = task.uuid;
         this.id = task.id;
         this.description = task.description;
@@ -83,7 +82,7 @@ const Task = new Lang.Class({
         this.project = task.project;
         this.tags = task.tags;
     }
-});
+}
 
 /*
  * Function to export pending task list from Taskwarrior.
