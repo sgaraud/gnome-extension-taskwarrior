@@ -279,7 +279,7 @@ const TaskwarriorMenuAdvancedItem2 = new Lang.Class({
         }
 
         let expander = new St.Bin({ style_class: 'popup-menu-item-expander' });
-        this.actor.add(expander, { expand: true });
+        this.actor.add_child(expander, { expand: true });
 
         this._button_del = new TaskButton(Taskwarrior.TASK_DELETE, task, 'task-button-danger');
         this.actor.add_child(this._button_del.actor);
@@ -308,7 +308,7 @@ const TaskwarriorMenuAdvancedItem3 = new Lang.Class({
         this.actor.add_child(this.label_start_value);
 
         let expander = new St.Bin({ style_class: 'popup-menu-item-expander' });
-        this.actor.add(expander, { expand: true });
+        this.actor.add_child(expander, { expand: true });
 
         this._button_mod = new TaskButton(Taskwarrior.TASK_MODIFY, task, 'task-button');
         this.actor.add_child(this._button_mod.actor);
